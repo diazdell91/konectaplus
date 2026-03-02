@@ -8,5 +8,7 @@ export { default as IconHeader } from "./IconHeader";
 export { default as Input } from "./Input";
 export { default as KeyboardScrollView } from "./KeyboardScrollView";
 export { default as ProgressIndicator } from "./ProgressIndicator";
+export { default as Screen } from "./Screen";
+export { default as ScreenHeader } from "./ScreenHeader";
 export { default as TabBarIcon } from "./TabBarIcon";
 export { default as Text } from "./Text";

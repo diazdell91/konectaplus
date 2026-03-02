@@ -1,48 +1,33 @@
-import { TabBarIcon } from "@/components/ui";
-import { Tabs } from "expo-router";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import React from "react";
-import { StyleSheet } from "react-native";
+import { DynamicColorIOS, Platform } from "react-native";
+
+const activeTint =
+  Platform.OS === "ios"
+    ? DynamicColorIOS({ light: "#09816c", dark: "#4fbe9f" })
+    : "#09816c";
 
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: "#4fbe9f",
-        tabBarInactiveTintColor: "#09816c",
-        tabBarStyle: {
-          height: 80,
-          paddingTop: 14,
-          paddingBottom: 10,
-          backgroundColor: "transparent",
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: "rgba(15, 23, 42, 0.10)",
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          marginTop: 4,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="(home)/index"
-        options={{
-          title: "Inicio",
-          tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="home" focused={focused} />
-          ),
-        }}
-      />
+    <NativeTabs tintColor={activeTint} labelStyle={{ fontSize: 11 }}>
+      <NativeTabs.Trigger name="(home)/index">
+        <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
+        <NativeTabs.Trigger.Label>Inicio</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
 
-      <Tabs.Screen
-        name="profile/index" // ✅ aquí está el fix
-        options={{
-          title: "Perfil",
-          tabBarIcon: ({ focused }) => (
-            <TabBarIcon name="account" focused={focused} />
-          ),
-        }}
-      />
-    </Tabs>
+      <NativeTabs.Trigger name="topup/index">
+        <NativeTabs.Trigger.Icon sf="arrow.up.circle.fill" md="arrow_upward" />
+        <NativeTabs.Trigger.Label>Recargas</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="calls/index">
+        <NativeTabs.Trigger.Icon sf="phone.fill" md="call" />
+        <NativeTabs.Trigger.Label>Llamadas</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="profile/index">
+        <NativeTabs.Trigger.Icon sf="person.fill" md="account_circle" />
+        <NativeTabs.Trigger.Label>Perfil</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

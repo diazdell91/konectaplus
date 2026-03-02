@@ -9,11 +9,10 @@ import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { ApolloProvider } from "@/apollo/apolloProvider";
-import { AppSettingsContext, AppSettingsProvider } from "@/context/AppSettings";
+import { AppSettingsProvider } from "@/context/AppSettings";
 import { AuthProvider, useAuth } from "@/context/AuthProvider";
 import * as Haptics from "expo-haptics";
 import { PressablesConfig } from "pressto";
-import { use } from "react";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 // Disable Reanimated strict mode warnings
@@ -25,10 +24,7 @@ configureReanimatedLogger({
 });
 
 function AppContent() {
-  const { settings } = use(AppSettingsContext);
   const { isAuthenticated } = useAuth();
-
-  console.log("AppContent rendered with isOnboarded:", settings);
 
   return (
     <Stack
@@ -41,7 +37,7 @@ function AppContent() {
       </Stack.Protected>
       <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" options={{}} />
-      </Stack.Protected>{" "}
+      </Stack.Protected>
       *
       {/* <Stack.Screen name="privacy-policy" options={{ presentation: "modal" }} />
       <Stack.Screen
