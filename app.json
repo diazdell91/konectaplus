@@ -37,6 +37,14 @@
           }
         }
       ],
+      [
+        "expo-build-properties",
+        {
+          "buildReactNativeFromSource": true,
+          "useHermesV1": true
+        }
+      ],
+
       "expo-font",
       "expo-image",
       "expo-web-browser",

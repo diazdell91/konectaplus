@@ -1,10 +1,9 @@
 import React, { useCallback, useMemo } from "react";
-import { Dimensions, Pressable, View } from "react-native";
+import { Pressable, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -21,7 +20,15 @@ type Props = {
   height?: number; // alto del pager si quieres fijo
 };
 
-const { width: SCREEN_W } = Dimensions.get("window");
+const SPRING_CONFIG = {
+  damping: 20,
+  stiffness: 220,
+} as const;
+
+function clampIndex(nextIndex: number, totalTabs: number) {
+  if (totalTabs <= 0) return 0;
+  return Math.max(0, Math.min(totalTabs - 1, nextIndex));
+}
 
 export default function SegmentedTopTabsPager({
   tabs,
@@ -30,73 +37,95 @@ export default function SegmentedTopTabsPager({
   renderPage,
   height,
 }: Props) {
-  const pageX = useSharedValue(-index * SCREEN_W);
+  const tabCount = tabs.length;
+  const safeIndex = clampIndex(index, tabCount);
+
+  const { width } = useWindowDimensions();
+  const pageWidth = Math.max(1, width);
+
+  const pageX = useSharedValue(-safeIndex * pageWidth);
+  const dragStartX = useSharedValue(0);
 
   // Mantén pageX sincronizado cuando cambie index desde afuera
   React.useEffect(() => {
-    pageX.value = withSpring(-index * SCREEN_W, {
-      damping: 20,
-      stiffness: 220,
-    });
-  }, [index, pageX]);
+    if (index !== safeIndex) {
+      onIndexChange(safeIndex);
+    }
+
+    if (tabCount === 0) {
+      pageX.value = 0;
+      return;
+    }
+
+    pageX.value = withSpring(-safeIndex * pageWidth, SPRING_CONFIG);
+  }, [index, onIndexChange, pageWidth, pageX, safeIndex, tabCount]);
 
   const snapTo = useCallback(
     (nextIndex: number) => {
-      const clamped = Math.max(0, Math.min(tabs.length - 1, nextIndex));
-      onIndexChange(clamped);
+      const clamped = clampIndex(nextIndex, tabCount);
+      if (clamped !== safeIndex) {
+        onIndexChange(clamped);
+      }
     },
-    [onIndexChange, tabs.length],
+    [onIndexChange, safeIndex, tabCount],
   );
 
   const pan = useMemo(() => {
-    let startX = 0;
-
     return Gesture.Pan()
+      .enabled(tabCount > 1)
+      .runOnJS(true)
       .onBegin(() => {
-        startX = pageX.value;
+        dragStartX.value = pageX.value;
       })
       .onUpdate((e) => {
-        const next = startX + e.translationX;
+        const next = dragStartX.value + e.translationX;
 
         // clamp (no overscroll)
-        const minX = -(tabs.length - 1) * SCREEN_W;
+        const minX = -Math.max(tabCount - 1, 0) * pageWidth;
         const maxX = 0;
         pageX.value = Math.max(minX, Math.min(maxX, next));
       })
       .onEnd((e) => {
         // decidir a qué página ir
-        const raw = -pageX.value / SCREEN_W;
+        const raw = -pageX.value / pageWidth;
 
         // “flick” support
         const velocityBoost = e.velocityX * -0.0006; // ajustable
         const target = Math.round(raw + velocityBoost);
 
-        const clamped = Math.max(0, Math.min(tabs.length - 1, target));
-        pageX.value = withSpring(-clamped * SCREEN_W, {
-          damping: 20,
-          stiffness: 220,
-        });
-        runOnJS(snapTo)(clamped);
+        const clamped = clampIndex(target, tabCount);
+        pageX.value = withSpring(-clamped * pageWidth, SPRING_CONFIG);
+        snapTo(clamped);
       });
-  }, [pageX, snapTo, tabs.length]);
+  }, [dragStartX, pageWidth, pageX, snapTo, tabCount]);
+
+  const onPressTab = useCallback(
+    (nextIndex: number) => {
+      const clamped = clampIndex(nextIndex, tabCount);
+      pageX.value = withSpring(-clamped * pageWidth, SPRING_CONFIG);
+      if (clamped !== safeIndex) {
+        onIndexChange(clamped);
+      }
+    },
+    [onIndexChange, pageWidth, pageX, safeIndex, tabCount],
+  );
 
   const containerStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: pageX.value }],
   }));
 
+  if (tabCount === 0) {
+    return null;
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <SegmentedHeader
         tabs={tabs}
-        index={index}
+        index={safeIndex}
         pageX={pageX}
-        onPressTab={(i) => {
-          pageX.value = withSpring(-i * SCREEN_W, {
-            damping: 20,
-            stiffness: 220,
-          });
-          onIndexChange(i);
-        }}
+        onPressTab={onPressTab}
+        pageWidth={pageWidth}
       />
 
       <GestureDetector gesture={pan}>
@@ -105,14 +134,14 @@ export default function SegmentedTopTabsPager({
             style={[
               {
                 flexDirection: "row",
-                width: SCREEN_W * tabs.length,
-                height: height ?? "100%",
+                width: pageWidth * tabCount,
+                ...(height !== undefined ? { height } : { flex: 1 }),
               },
               containerStyle,
             ]}
           >
             {tabs.map((t) => (
-              <View key={t.key} style={{ width: SCREEN_W, flex: 1 }}>
+              <View key={t.key} style={{ width: pageWidth, flex: 1 }}>
                 {renderPage(t.key)}
               </View>
             ))}
@@ -128,15 +157,17 @@ function SegmentedHeader({
   index,
   pageX,
   onPressTab,
+  pageWidth,
 }: {
   tabs: { key: string; title: string }[];
   index: number;
   pageX: SharedValue<number>;
   onPressTab: (i: number) => void;
+  pageWidth: number;
 }) {
-  const segmentW = (SCREEN_W - 32) / tabs.length; // 16 padding each side
+  const segmentW = (pageWidth - 32) / Math.max(tabs.length, 1); // 16 padding each side
   const indicatorStyle = useAnimatedStyle(() => {
-    const progress = -pageX.value / SCREEN_W; // 0..N
+    const progress = -pageX.value / pageWidth; // 0..N
     return {
       transform: [{ translateX: progress * segmentW }],
     };
@@ -193,6 +224,7 @@ function SegmentedHeader({
               active={i === index}
               pageX={pageX}
               i={i}
+              pageWidth={pageWidth}
             />
           </Pressable>
         ))}
@@ -206,14 +238,16 @@ function TabLabel({
   active,
   pageX,
   i,
+  pageWidth,
 }: {
   title: string;
   active: boolean;
   pageX: SharedValue<number>;
   i: number;
+  pageWidth: number;
 }) {
   const textStyle = useAnimatedStyle(() => {
-    const progress = -pageX.value / SCREEN_W; // 0..N
+    const progress = -pageX.value / pageWidth; // 0..N
     const dist = Math.abs(progress - i);
 
     const opacity = interpolate(dist, [0, 1], [1, 0.55], Extrapolation.CLAMP);

@@ -1,5 +1,6 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { SegmentedTopTabsPager } from "../ui";
 
 function Page({ title }: { title: string }) {
@@ -19,29 +20,26 @@ const CallScreen = () => {
   const tabs = [
     { key: "mobile", title: "Móvil" },
     { key: "data", title: "Datos" },
-    { key: "bundles", title: "Paquetes" },
   ];
   return (
-    <SegmentedTopTabsPager
-      tabs={tabs}
-      index={index}
-      onIndexChange={setIndex}
-      renderPage={(key) => {
-        switch (key) {
-          case "mobile":
-            return <Page title="Recarga Móvil" />;
-          case "data":
-            return <Page title="Recarga Datos" />;
-          case "bundles":
-            return <Page title="Paquetes" />;
-          default:
-            return null;
-        }
-      }}
-    />
+    <SafeAreaView style={{ flex: 1 }}>
+      <SegmentedTopTabsPager
+        tabs={tabs}
+        index={index}
+        onIndexChange={setIndex}
+        renderPage={(key) => {
+          switch (key) {
+            case "mobile":
+              return <Page title="Recarga Móvil" />;
+            case "data":
+              return <Page title="Recarga Datos" />;
+            default:
+              return null;
+          }
+        }}
+      />
+    </SafeAreaView>
   );
 };
 
 export default CallScreen;
-
-const styles = StyleSheet.create({});

@@ -1,6 +1,6 @@
-import { router } from "expo-router";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import FeaturedPromotionsSection from "../home/FeaturedPromotionsSection";
 import HomeHeader from "../home/HomeHeader";
 import HomeHeroCarousel from "../home/HomeHeroCarousel";
@@ -8,21 +8,25 @@ import PopularCountriesSection from "../home/PopularCountriesSection";
 import RecentContactsList from "../home/RecentContactsList";
 import ServicesGrid from "../home/ServicesGrid";
 import SpecialOffersSection from "../home/SpecialOffersSection";
-import { Button } from "../ui";
 
 const HomeScreen = () => {
   return (
-    <View>
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <HomeHeader />
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.stickyHeader}>
+          <HomeHeader />
+        </View>
         {/* Example usage with navigation:
           <ServicesGrid onPressService={(key) => router.push(`/services/${key}`)} />
       */}
-
-        <Button
+        {/* <Button
           title="Go to Promotions"
           onPress={() => router.push("/(modals)/country-picker")}
-        />
+        /> */}
         <HomeHeroCarousel
           onPressSlide={(id) => {
             console.log("Slide pressed:", id);
@@ -53,10 +57,21 @@ const HomeScreen = () => {
           }}
         />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 export default HomeScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 20,
+  },
+  stickyHeader: {
+    backgroundColor: "transparent",
+    zIndex: 10,
+  },
+});
