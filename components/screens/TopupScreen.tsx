@@ -1,5 +1,9 @@
+import COLORS from "@/theme/colors";
+import { FONT_FAMILIES } from "@/theme/typography";
+import { detectCountryFromPhone } from "@/utils/phoneCountry";
 import { Ionicons } from "@expo/vector-icons";
 import * as Contacts from "expo-contacts";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,65 +15,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import COLORS from "@/theme/colors";
-import { FONT_FAMILIES } from "@/theme/typography";
-
-// ─── Country detection ────────────────────────────────────────────────────────
-
-const PREFIX_MAP: Record<string, { code: string; flag: string }> = {
-  "+53": { code: "CU", flag: "🇨🇺" },
-  "+1": { code: "US", flag: "🇺🇸" },
-  "+52": { code: "MX", flag: "🇲🇽" },
-  "+34": { code: "ES", flag: "🇪🇸" },
-  "+57": { code: "CO", flag: "🇨🇴" },
-  "+1-809": { code: "DO", flag: "🇩🇴" },
-  "+1-829": { code: "DO", flag: "🇩🇴" },
-  "+504": { code: "HN", flag: "🇭🇳" },
-  "+502": { code: "GT", flag: "🇬🇹" },
-  "+503": { code: "SV", flag: "🇸🇻" },
-  "+509": { code: "HT", flag: "🇭🇹" },
-};
-
-function detectCountry(phone: string): { code: string; flag: string } | null {
-  const cleaned = phone.replace(/\s/g, "");
-  // Check longer prefixes first
-  for (const prefix of Object.keys(PREFIX_MAP).sort(
-    (a, b) => b.length - a.length
-  )) {
-    if (cleaned.startsWith(prefix)) return PREFIX_MAP[prefix];
-  }
-  return null;
-}
-
-function formatPhone(phone: string): string {
-  // Leave as-is but normalize spacing
-  return phone.trim();
-}
-
-// ─── Avatar color from name ───────────────────────────────────────────────────
-
-const AVATAR_COLORS = [
-  "#4DA3FF",
-  "#4ED173",
-  "#B07CFF",
-  "#FF6B6B",
-  "#FFB347",
-  "#47C2C2",
-  "#FF69B4",
-  "#5B8CFF",
-];
-
-function avatarColor(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + hash * 31;
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "?";
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
+import RowItem from "../topup/rows/RowItem";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -133,51 +79,6 @@ const MOCK_HISTORY: HistoryItem[] = [
   },
 ];
 
-// ─── Row component ────────────────────────────────────────────────────────────
-
-interface RowItemProps {
-  displayName: string;
-  phone: string;
-  label: string;
-  flag: string | null;
-  onPress?: () => void;
-}
-
-const RowItem = ({ displayName, phone, label, flag, onPress }: RowItemProps) => {
-  const bg = avatarColor(displayName || phone);
-  const ini = initials(displayName || phone);
-
-  return (
-    <Pressable
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-      onPress={onPress}
-    >
-      {/* Avatar */}
-      <View style={[styles.avatarCircle, { backgroundColor: bg }]}>
-        <Text style={styles.avatarInitials}>{ini}</Text>
-        {flag ? (
-          <View style={styles.flagBadge}>
-            <Text style={styles.flagText}>{flag}</Text>
-          </View>
-        ) : null}
-      </View>
-
-      {/* Content */}
-      <View style={styles.rowContent}>
-        <Text style={styles.rowName} numberOfLines={1} ellipsizeMode="tail">
-          {displayName || phone}
-        </Text>
-        <Text style={styles.rowPhone} numberOfLines={1}>
-          {displayName ? formatPhone(phone) : ""}
-          {label ? (
-            <Text style={styles.rowLabel}>{displayName ? `  (${label})` : `(${label})`}</Text>
-          ) : null}
-        </Text>
-      </View>
-    </Pressable>
-  );
-};
-
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 type Tab = "history" | "contacts";
@@ -189,11 +90,26 @@ interface Section {
 }
 
 const ContactsHistoryScreen = () => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("history");
   const [query, setQuery] = useState("");
   const [contacts, setContacts] = useState<ContactItem[]>([]);
   const [permission, setPermission] = useState<Permission>("undetermined");
   const [loading, setLoading] = useState(false);
+
+  const handleSelectPhone = useCallback(
+    (phone: string) => {
+      const country = detectCountryFromPhone(phone);
+      router.push({
+        pathname: "/(tabs)/(topup)/recharge-flow",
+        params: {
+          phone,
+          ...(country ? { countryIso: country.iso } : {}),
+        },
+      });
+    },
+    [router],
+  );
 
   const listRef = useRef<SectionList<ContactItem, Section>>(null);
 
@@ -220,11 +136,11 @@ const ContactsHistoryScreen = () => {
         const phoneEntry = c.phoneNumbers![0];
         const phone = phoneEntry.number ?? "";
         const label = phoneEntry.label ?? "";
-        const country = detectCountry(phone);
+        const country = detectCountryFromPhone(phone);
         return {
           id: c.id ?? String(Math.random()),
           displayName: c.name || phone,
-          primaryPhone: formatPhone(phone),
+          primaryPhone: phone.trim(),
           label,
           flag: country?.flag ?? null,
         };
@@ -285,8 +201,6 @@ const ContactsHistoryScreen = () => {
         itemIndex: 0,
         animated: true,
       });
-    } else {
-      console.log("scroll to", letter);
     }
   };
 
@@ -332,7 +246,7 @@ const ContactsHistoryScreen = () => {
             phone={item.phone}
             label={item.label}
             flag={item.flag}
-            onPress={() => console.log("history", item.id)}
+            onPress={() => handleSelectPhone(item.phone)}
           />
         )}
         contentContainerStyle={styles.listContent}
@@ -367,7 +281,7 @@ const ContactsHistoryScreen = () => {
               phone={item.primaryPhone}
               label={item.label}
               flag={item.flag}
-              onPress={() => console.log("contact", item.id)}
+              onPress={() => handleSelectPhone(item.primaryPhone)}
             />
           )}
           renderSectionHeader={({ section: { title } }) => (
@@ -452,7 +366,9 @@ const ContactsHistoryScreen = () => {
 
       {/* Content */}
       <View style={{ flex: 1 }}>
-        {activeTab === "history" ? renderHistoryContent() : renderContactsContent()}
+        {activeTab === "history"
+          ? renderHistoryContent()
+          : renderContactsContent()}
       </View>
     </View>
   );
@@ -553,73 +469,6 @@ const styles = StyleSheet.create({
     color: "#47C26B",
     paddingTop: 12,
     paddingBottom: 4,
-  },
-
-  // Row
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    marginVertical: 4,
-    padding: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  rowPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.985 }],
-  },
-  avatarCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  avatarInitials: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  flagBadge: {
-    position: "absolute",
-    bottom: -2,
-    right: -4,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  flagText: {
-    fontSize: 12,
-  },
-  rowContent: {
-    flex: 1,
-  },
-  rowName: {
-    fontFamily: FONT_FAMILIES.semiBold,
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#111111",
-    marginBottom: 2,
-  },
-  rowPhone: {
-    fontFamily: FONT_FAMILIES.regular,
-    fontSize: 13,
-    color: "#6C7B8A",
-  },
-  rowLabel: {
-    fontFamily: FONT_FAMILIES.regular,
-    fontSize: 12,
-    color: "#9AA5B4",
   },
 
   // A–Z index

@@ -11,6 +11,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ApolloProvider } from "@/apollo/apolloProvider";
 import { AppSettingsProvider } from "@/context/AppSettings";
 import { AuthProvider, useAuth } from "@/context/AuthProvider";
+import { PhoneCountryProvider } from "@/context/PhoneCountry";
+import { RechargeCartProvider } from "@/context/RechargeCartContext";
 import * as Haptics from "expo-haptics";
 import { PressablesConfig } from "pressto";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -38,6 +40,11 @@ function AppContent() {
       <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" options={{}} />
       </Stack.Protected>
+      {/* grupo de modals */}
+      <Stack.Screen
+        name="(modals)/country-picker"
+        options={{ presentation: "pageSheet", headerShown: false }}
+      />
       *
       {/* <Stack.Screen name="privacy-policy" options={{ presentation: "modal" }} />
       <Stack.Screen
@@ -53,28 +60,32 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ApolloProvider>
         <AuthProvider>
-          <AppSettingsProvider>
-            <KeyboardProvider>
-              <PressablesConfig
-                globalHandlers={{
-                  onPress: () => {
-                    Haptics.selectionAsync();
-                  },
-                }}
-                config={{ minScale: 0.97 }}
-              >
-                <AppContent />
+          <PhoneCountryProvider>
+            <RechargeCartProvider>
+              <AppSettingsProvider>
+                <KeyboardProvider>
+                  <PressablesConfig
+                    globalHandlers={{
+                      onPress: () => {
+                        Haptics.selectionAsync();
+                      },
+                    }}
+                    config={{ minScale: 0.97 }}
+                  >
+                    <AppContent />
 
-                <Toaster
-                  style={{
-                    backgroundColor: "black",
-                    borderWidth: 1,
-                    borderColor: "#FFFFFF20",
-                  }}
-                />
-              </PressablesConfig>
-            </KeyboardProvider>
-          </AppSettingsProvider>
+                    <Toaster
+                      style={{
+                        backgroundColor: "black",
+                        borderWidth: 1,
+                        borderColor: "#FFFFFF20",
+                      }}
+                    />
+                  </PressablesConfig>
+                </KeyboardProvider>
+              </AppSettingsProvider>
+            </RechargeCartProvider>
+          </PhoneCountryProvider>
         </AuthProvider>
       </ApolloProvider>
     </GestureHandlerRootView>

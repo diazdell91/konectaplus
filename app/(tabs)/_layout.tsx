@@ -15,7 +15,7 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Inicio</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="topup/index">
+      <NativeTabs.Trigger name="(topup)">
         <NativeTabs.Trigger.Icon sf="arrow.up.circle.fill" md="arrow_upward" />
         <NativeTabs.Trigger.Label>Recargas</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>

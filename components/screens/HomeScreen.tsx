@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import FeaturedPromotionsSection from "../home/FeaturedPromotionsSection";
@@ -7,6 +8,7 @@ import PopularCountriesSection from "../home/PopularCountriesSection";
 import RecentContactsList from "../home/RecentContactsList";
 import ServicesGrid from "../home/ServicesGrid";
 import SpecialOffersSection from "../home/SpecialOffersSection";
+import { Button } from "../ui";
 
 const HomeScreen = () => {
   return (
@@ -16,6 +18,11 @@ const HomeScreen = () => {
         {/* Example usage with navigation:
           <ServicesGrid onPressService={(key) => router.push(`/services/${key}`)} />
       */}
+
+        <Button
+          title="Go to Promotions"
+          onPress={() => router.push("/(modals)/country-picker")}
+        />
         <HomeHeroCarousel
           onPressSlide={(id) => {
             console.log("Slide pressed:", id);
