@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from "react";
+import React, { Activity, useCallback, useMemo } from "react";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Pressable, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -21,8 +22,8 @@ type Props = {
 };
 
 const SPRING_CONFIG = {
-  damping: 20,
-  stiffness: 220,
+  damping: 60,
+  stiffness: 400,
 } as const;
 
 function clampIndex(nextIndex: number, totalTabs: number) {
@@ -140,11 +141,15 @@ export default function SegmentedTopTabsPager({
               containerStyle,
             ]}
           >
-            {tabs.map((t) => (
-              <View key={t.key} style={{ width: pageWidth, flex: 1 }}>
-                {renderPage(t.key)}
-              </View>
-            ))}
+            {tabs.map((t, i) => {
+              // Keep adjacent pages active so swipe transitions stay filled.
+              const mode = Math.abs(i - safeIndex) <= 1 ? "visible" : "hidden";
+              return (
+                <View key={t.key} style={{ width: pageWidth, flex: 1 }}>
+                  <Activity mode={mode}>{renderPage(t.key)}</Activity>
+                </View>
+              );
+            })}
           </Animated.View>
         </View>
       </GestureDetector>
@@ -165,6 +170,7 @@ function SegmentedHeader({
   onPressTab: (i: number) => void;
   pageWidth: number;
 }) {
+  const hasLiquidGlass = isLiquidGlassAvailable();
   const segmentW = (pageWidth - 32) / Math.max(tabs.length, 1); // 16 padding each side
   const indicatorStyle = useAnimatedStyle(() => {
     const progress = -pageX.value / pageWidth; // 0..N
@@ -175,18 +181,23 @@ function SegmentedHeader({
 
   return (
     <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12 }}>
-      <View
+      <GlassView
+        glassEffectStyle={hasLiquidGlass ? "regular" : "none"}
         style={{
           height: 44,
           borderRadius: 14,
-          backgroundColor: "rgba(2, 6, 23, 0.06)",
+          backgroundColor: hasLiquidGlass ? "transparent" : "rgba(255,255,255,0.86)",
+          borderWidth: hasLiquidGlass ? 0 : 1,
+          borderColor: "rgba(15,23,42,0.08)",
           padding: 4,
           flexDirection: "row",
           position: "relative",
+          overflow: "hidden",
         }}
       >
         {/* indicador */}
         <Animated.View
+          pointerEvents="none"
           style={[
             {
               position: "absolute",
@@ -194,18 +205,25 @@ function SegmentedHeader({
               top: 4,
               width: segmentW - 0,
               height: 36,
-              borderRadius: 12,
-              backgroundColor: "white",
-              // sombra suave
-              shadowColor: "#000",
-              shadowOpacity: 0.08,
-              shadowRadius: 8,
-              shadowOffset: { width: 0, height: 3 },
-              elevation: 2,
             },
             indicatorStyle,
           ]}
-        />
+        >
+          <GlassView
+            glassEffectStyle={hasLiquidGlass ? "clear" : "none"}
+            style={{
+              flex: 1,
+              borderRadius: 12,
+              backgroundColor: hasLiquidGlass
+                ? "rgba(255,255,255,0.14)"
+                : "rgba(255,255,255,0.92)",
+              borderWidth: hasLiquidGlass ? 0 : 1,
+              borderColor: "rgba(15,23,42,0.08)",
+              boxShadow: "0 3px 8px rgba(0,0,0,0.08)",
+              overflow: "hidden",
+            }}
+          />
+        </Animated.View>
 
         {tabs.map((t, i) => (
           <Pressable
@@ -228,7 +246,7 @@ function SegmentedHeader({
             />
           </Pressable>
         ))}
-      </View>
+      </GlassView>
     </View>
   );
 }

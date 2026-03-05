@@ -50,7 +50,7 @@ export function PhoneCountryProvider({
       dialCode,
       validatePhoneLength,
     }),
-    [country, dialCode],
+    [country, dialCode, validatePhoneLength],
   );
 
   return (

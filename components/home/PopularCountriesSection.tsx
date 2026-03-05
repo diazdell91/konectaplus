@@ -4,10 +4,11 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
+import { Text } from "@/components/ui";
+import COLORS from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 
 const HORIZONTAL_PADDING = 16;
@@ -110,7 +111,7 @@ const PopularCountriesSection = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Países populares</Text>
+      <Text h4 style={styles.sectionTitle}>Países populares</Text>
       <FlatList
         data={countries}
         keyExtractor={(item) => item.id}
@@ -132,10 +133,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: HORIZONTAL_PADDING,
   },
   sectionTitle: {
-    fontFamily: FONT_FAMILIES.semiBold,
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#111111",
     marginBottom: 16,
   },
   item: {
@@ -153,7 +150,7 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILIES.medium,
     fontSize: 13,
     fontWeight: "500",
-    color: "#111111",
+    color: COLORS.text.primary,
     textAlign: "center",
     marginTop: 8,
   },

@@ -13,18 +13,12 @@ import {
   RechargeListingType,
   RechargeProductListing,
 } from "@/graphql/adminRechargeProductListings";
-import COLORS from "@/theme/colors";
+import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { discountPercent, formatUsd } from "@/utils/currency";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -42,14 +36,15 @@ interface Props {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function sortListings(items: RechargeProductListing[]): RechargeProductListing[] {
+function sortListings(
+  items: RechargeProductListing[],
+): RechargeProductListing[] {
   return [...items].sort((a, b) => {
     if (b.isFeatured !== a.isFeatured) return b.isFeatured ? 1 : -1;
     if (a.priority !== b.priority) return a.priority - b.priority;
     return a.sellPriceUsdCents - b.sellPriceUsdCents;
   });
 }
-
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -113,15 +108,19 @@ const OfferList = ({
     return sortListings(
       listings.filter(
         (l) =>
-          l.providerCode === providerCode && l.rechargeType === rechargeType
-      )
+          l.providerCode === providerCode && l.rechargeType === rechargeType,
+      ),
     );
   }, [listings, providerCode, rechargeType]);
 
   if (!providerCode) {
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="hand-left-outline" size={38} color={COLORS.neutral.gray300} />
+        <Ionicons
+          name="hand-left-outline"
+          size={38}
+          color={COLORS.neutral.gray300}
+        />
         <Text style={styles.emptyTitle}>Selecciona un proveedor</Text>
         <Text style={styles.emptySubtitle}>
           Elige un proveedor arriba para ver las ofertas disponibles.
@@ -146,7 +145,10 @@ const OfferList = ({
           !!item.compareAtPriceUsdCents &&
           item.compareAtPriceUsdCents > item.sellPriceUsdCents;
         const discount = hasDiscount
-          ? discountPercent(item.sellPriceUsdCents, item.compareAtPriceUsdCents!)
+          ? discountPercent(
+              item.sellPriceUsdCents,
+              item.compareAtPriceUsdCents!,
+            )
           : 0;
 
         return (

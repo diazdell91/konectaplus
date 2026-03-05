@@ -1,9 +1,14 @@
 export { default as ContactsHistoryScreen } from "../screens/TopupScreen";
+export { default as ContactsList } from "./contacts/ContactsList";
 export { default as RechargeFooter } from "./footer/RechargeFooter";
+export { default as RechargeHeader } from "./header/RechargeHeader";
+export { default as HistoryList } from "./history/HistoryList";
 export { default as OfferList } from "./offers/OfferList";
-export { default as CountryModal } from "./phone/CountryModal";
-export { default as PhoneInputSection } from "./phone/PhoneInputSection";
 export { default as ProviderPicker } from "./provider/ProviderPicker";
+export { default as ProviderSection } from "./provider/ProviderSection";
 export { default as RowItem } from "./rows/RowItem";
+export { default as TopupContactTab } from "./screen/TopupContactTab";
+export { default as TopupHistoryTab } from "./screen/TopupHistoryTab";
+export { default as SearchBar } from "./search/SearchBar";
 export { default as LoadingSkeleton } from "./shared/LoadingSkeleton";
 export { default as RechargeTypeTabs } from "./tabs/RechargeTypeTabs";

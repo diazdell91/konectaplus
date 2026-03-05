@@ -5,9 +5,10 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/components/ui";
+import COLORS from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 
 interface Promotion {
@@ -109,7 +110,7 @@ const FeaturedPromotionsSection = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Promociones destacadas</Text>
+      <Text h4 style={styles.sectionTitle}>Promociones destacadas</Text>
       <FlatList
         data={promotions}
         keyExtractor={(item) => item.id}
@@ -130,10 +131,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontFamily: FONT_FAMILIES.semiBold,
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#111111",
     marginBottom: 14,
   },
   separator: {
@@ -177,29 +174,29 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILIES.semiBold,
     fontSize: 12,
     fontWeight: "600",
-    color: "#111111",
+    color: COLORS.text.primary,
   },
   operatorDot: {
     fontSize: 12,
-    color: "#9AA5B4",
+    color: COLORS.text.secondary,
   },
   countryText: {
     fontFamily: FONT_FAMILIES.regular,
     fontSize: 12,
-    color: "#6C7B8A",
+    color: COLORS.text.secondary,
     flexShrink: 1,
   },
   promoTitle: {
     fontFamily: FONT_FAMILIES.bold,
     fontSize: 18,
     fontWeight: "700",
-    color: "#111111",
+    color: COLORS.text.primary,
     marginTop: 2,
   },
   promoDescription: {
     fontFamily: FONT_FAMILIES.regular,
     fontSize: 13,
-    color: "#6C7B8A",
+    color: COLORS.text.secondary,
     lineHeight: 18,
   },
   cardRight: {

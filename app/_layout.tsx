@@ -45,7 +45,13 @@ function AppContent() {
         name="(modals)/country-picker"
         options={{ presentation: "pageSheet", headerShown: false }}
       />
-      *
+      <Stack.Screen
+        name="(modals)/topups-provider-picker"
+        options={{ presentation: "pageSheet", headerShown: false }}
+      />
+      {/* rutas de servicios */}
+      <Stack.Screen name="services" options={{ headerShown: false }} />
+
       {/* <Stack.Screen name="privacy-policy" options={{ presentation: "modal" }} />
       <Stack.Screen
         name="terms-of-service"

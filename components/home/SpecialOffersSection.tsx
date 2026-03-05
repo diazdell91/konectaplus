@@ -5,10 +5,11 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
+import { Text } from "@/components/ui";
+import COLORS from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 
 const HORIZONTAL_PADDING = 16;
@@ -134,7 +135,7 @@ const SpecialOffersSection = ({ onPressOffer }: SpecialOffersSectionProps) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Ofertas especiales</Text>
+      <Text h4 style={styles.sectionTitle}>Ofertas especiales</Text>
       <FlatList
         data={offers}
         keyExtractor={(item) => item.id}
@@ -157,10 +158,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: HORIZONTAL_PADDING,
   },
   sectionTitle: {
-    fontFamily: FONT_FAMILIES.semiBold,
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#111111",
     marginBottom: 14,
   },
   columnWrapper: {
@@ -200,13 +197,13 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILIES.bold,
     fontSize: 16,
     fontWeight: "700",
-    color: "#111111",
+    color: COLORS.text.primary,
     lineHeight: 21,
   },
   offerDescription: {
     fontFamily: FONT_FAMILIES.regular,
     fontSize: 13,
-    color: "#6C7B8A",
+    color: COLORS.text.secondary,
     lineHeight: 18,
   },
   cardFooter: {
@@ -234,11 +231,11 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILIES.semiBold,
     fontSize: 12,
     fontWeight: "600",
-    color: "#111111",
+    color: COLORS.text.primary,
   },
   countryText: {
     fontFamily: FONT_FAMILIES.regular,
     fontSize: 11,
-    color: "#6C7B8A",
+    color: COLORS.text.secondary,
   },
 });

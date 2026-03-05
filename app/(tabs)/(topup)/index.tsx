@@ -1,12 +1,14 @@
 import { TopupScreen } from "@/components/screens";
-import { Screen } from "@/components/ui";
+import { ScreenHeader } from "@/components/ui";
 import React from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Index = () => {
   return (
-    <Screen edges={["top"]} style={{ marginTop: 32 }}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScreenHeader subtitle="Recarga a los tuyos" />
       <TopupScreen />
-    </Screen>
+    </SafeAreaView>
   );
 };
 

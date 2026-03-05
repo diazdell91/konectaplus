@@ -4,12 +4,11 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/components/ui";
 import COLORS from "@/theme/colors";
 import SPACING from "@/theme/spacing";
-import { FONT_FAMILIES, FONT_SIZES } from "@/theme/typography";
 
 interface Contact {
   id: string;
@@ -45,7 +44,7 @@ const ContactItem = ({ contact }: ContactItemProps) => (
       style={styles.avatar}
       contentFit="cover"
     />
-    <Text style={styles.name} numberOfLines={1}>
+    <Text small align="center" color={COLORS.text.secondary} style={styles.name} numberOfLines={1}>
       {getFirstName(contact.fullName)}
     </Text>
   </Pressable>
@@ -55,9 +54,9 @@ const RecentContactsList = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Mis Contactos</Text>
+        <Text h4>Mis Contactos</Text>
         <Pressable onPress={() => {}}>
-          <Text style={styles.viewAll}>Ver todos</Text>
+          <Text small color={COLORS.primary.main}>Ver todos</Text>
         </Pressable>
       </View>
 
@@ -87,16 +86,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.component.screenPadding,
     marginBottom: SPACING.md,
   },
-  title: {
-    fontFamily: FONT_FAMILIES.semiBold,
-    fontSize: FONT_SIZES.md,
-    color: COLORS.text.primary,
-  },
-  viewAll: {
-    fontFamily: FONT_FAMILIES.medium,
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.primary.main,
-  },
   listContent: {
     paddingHorizontal: SPACING.component.screenPadding,
   },
@@ -115,9 +104,5 @@ const styles = StyleSheet.create({
   },
   name: {
     marginTop: SPACING.xs,
-    fontFamily: FONT_FAMILIES.regular,
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.text.secondary,
-    textAlign: "center",
   },
 });

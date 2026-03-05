@@ -76,6 +76,8 @@ Use `components/ui/Text.tsx` (with variant props like `body`, `h1`, `caption`) a
 - `components/otp/` — OTP input component
 - `utils/phoneUS.ts` — US phone formatting and NANP validation helpers
 
+**One component per file — strictly enforced.** Never define more than one React component in a single file. If a screen or feature requires multiple components, each must live in its own file. Helper sub-components belong in a dedicated subfolder (e.g., `components/topup/header/`, `components/topup/footer/`). Barrel `index.ts` files are allowed for re-exporting, but must not define any components themselves.
+
 ### Path Aliases
 
 `@/*` maps to the project root (e.g., `@/theme/colors`, `@/context/AuthProvider`).

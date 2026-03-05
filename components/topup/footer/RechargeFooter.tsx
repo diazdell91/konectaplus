@@ -1,5 +1,5 @@
 import { RechargeProductListing } from "@/graphql/adminRechargeProductListings";
-import COLORS from "@/theme/colors";
+import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { formatUsd } from "@/utils/currency";
 import { Ionicons } from "@expo/vector-icons";

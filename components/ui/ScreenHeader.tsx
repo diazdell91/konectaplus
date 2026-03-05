@@ -1,40 +1,20 @@
-import { View, StyleSheet, ImageSourcePropType } from "react-native";
-import Text from "./Text";
-import { COLORS, SPACING, TYPOGRAPHY } from "@/theme";
+import { COLORS } from "@/theme";
 import { Image } from "expo-image";
-
-// Icon mapping - centralized icon management
-const ICON_MAP: Record<string, ImageSourcePropType> = {
-  packages: require("@/assets/icons/packages.png"),
-  man: require("@/assets/icons/man.png"),
-  woman: require("@/assets/icons/woman.png"),
-};
+import { StyleSheet, View } from "react-native";
 
 interface ScreenHeaderProps {
-  title: string;
   subtitle: string;
-  iconName?: keyof typeof ICON_MAP;
 }
 
-export default function ScreenHeader({
-  title,
-  subtitle,
-  iconName = "packages",
-}: ScreenHeaderProps) {
+export default function ScreenHeader({ subtitle }: ScreenHeaderProps) {
   return (
     <View style={styles.headerSection}>
-      <View style={styles.headerContent}>
-        <View style={styles.headerIconContainer}>
-          <Image
-            source={ICON_MAP[iconName]}
-            style={{ width: 52, height: 52 }}
-            contentFit="contain"
-          />
-        </View>
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>{title}</Text>
-          <Text style={styles.headerSubtitle}>{subtitle}</Text>
-        </View>
+      <View style={styles.headerIconContainer}>
+        <Image
+          source={require("@/assets/images/icon-logo.png")}
+          style={{ width: 72, height: 72 }}
+          contentFit="contain"
+        />
       </View>
     </View>
   );
@@ -42,36 +22,15 @@ export default function ScreenHeader({
 
 const styles = StyleSheet.create({
   headerSection: {
-    backgroundColor: COLORS.surface.primary,
+    backgroundColor: COLORS.light.background,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5E5",
   },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-    gap: SPACING.sm,
-  },
   headerIconContainer: {
-    width: 56,
+    width: "auto",
     height: 56,
-    borderRadius: 28,
-    backgroundColor: `${COLORS.primary.main}10`,
+    borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-  },
-  headerTextContainer: {
-    flex: 1,
-    gap: SPACING.xs / 2,
-  },
-  headerTitle: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.text.primary,
-  },
-  headerSubtitle: {
-    ...TYPOGRAPHY.body,
-    fontSize: 14,
-    color: COLORS.text.secondary,
   },
 });

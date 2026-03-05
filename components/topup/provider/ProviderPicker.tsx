@@ -7,18 +7,12 @@
  */
 
 import { RechargeProductListing } from "@/graphql/adminRechargeProductListings";
-import COLORS from "@/theme/colors";
+import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
-import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React, { useMemo } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -117,7 +111,10 @@ const ProviderPicker = ({
               )}
 
               <Text
-                style={[styles.providerName, isSelected && styles.providerNameSelected]}
+                style={[
+                  styles.providerName,
+                  isSelected && styles.providerNameSelected,
+                ]}
                 numberOfLines={1}
               >
                 {provider.name}
@@ -126,7 +123,11 @@ const ProviderPicker = ({
               {/* Selected check badge */}
               {isSelected && (
                 <View style={styles.checkBadge}>
-                  <Ionicons name="checkmark-circle" size={18} color={COLORS.primary.main} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={18}
+                    color={COLORS.primary.main}
+                  />
                 </View>
               )}
             </Pressable>
