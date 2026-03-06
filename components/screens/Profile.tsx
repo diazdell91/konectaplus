@@ -62,6 +62,12 @@ export default function ProfileScreen() {
             subtitle="Tarjetas y formas de pago"
             onPress={() => router.push("/services/payment/payment-methods")}
           />
+          <ProfileListItem
+            icon="receipt"
+            title="Mis Pedidos"
+            subtitle="Historial de tus transacciones"
+            onPress={() => router.push("/services/orders/my-orders")}
+          />
         </ProfileSection>
 
         <ProfileSection title="Preferencias">

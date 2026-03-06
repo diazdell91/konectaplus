@@ -71,7 +71,7 @@ function ProfileListItem(props: Props) {
         name={
           icon as React.ComponentProps<typeof MaterialCommunityIcons>["name"]
         }
-        size={24}
+        size={18}
         color={colors.icon}
       />
     );
@@ -98,8 +98,8 @@ function ProfileListItem(props: Props) {
         {onPress && (
           <MaterialCommunityIcons
             name="chevron-right"
-            size={24}
-            color={COLORS.neutral.gray500}
+            size={18}
+            color={COLORS.neutral.gray400}
           />
         )}
       </View>
@@ -112,46 +112,47 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.surface.primary,
-    borderRadius: 12,
-    marginHorizontal: SPACING.sm,
+    borderRadius: 14,
+    marginHorizontal: SPACING.md,
     marginVertical: SPACING.xs,
-    padding: SPACING.sm,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: COLORS.border.light,
   },
   iconContainer: {
     justifyContent: "center",
     alignItems: "center",
-    marginRight: SPACING.sm,
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    marginRight: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
   },
   iconImage: {
-    width: 48,
-    height: 48,
+    width: 24,
+    height: 24,
   },
   contentContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.sm,
+    gap: 8,
   },
   textContainer: {
     flex: 1,
-    gap: SPACING.xs / 2,
+    gap: 2,
   },
   title: {
     fontFamily: "Montserrat-SemiBold",
-    fontSize: 15,
+    fontSize: 14,
     color: COLORS.text.primary,
     lineHeight: 20,
   },
   subtitle: {
     fontFamily: "Montserrat-Regular",
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.text.secondary,
-    lineHeight: 18,
+    lineHeight: 17,
   },
 });
 

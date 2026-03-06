@@ -50,6 +50,8 @@ export default function ServicesLayout() {
         options={{ title: "Añadir tarjeta" }}
       />
       <Stack.Screen name="gift-cards" options={{ title: "Tarjeta regalo" }} />
+      <Stack.Screen name="orders/my-orders" options={{ title: "Mis Pedidos" }} />
+      <Stack.Screen name="orders/[orderId]" options={{ title: "Detalle del pedido" }} />
     </Stack>
   );
 }
