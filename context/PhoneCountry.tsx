@@ -21,7 +21,7 @@ export function PhoneCountryProvider({
 }) {
   const list = COUNTRIES.filter((c) => !!c.prefix);
 
-  const defaultCountry = list.find((c) => c.iso === "US") ?? list[0];
+  const defaultCountry = list.find((c) => c.iso === "CU") ?? list[0];
 
   const [country, setCountry] = useState<PhoneCountry>(defaultCountry);
 

@@ -1,5 +1,5 @@
 /**
- * RechargeCartContext — simple in-memory mock cart for the recharge flow.
+ * TopupCartContext — simple in-memory mock cart for the recharge flow.
  *
  * Holds the items the user wants to purchase.  In a real app this would be
  * persisted (SQLite / remote) and tied to the backend checkout flow.
@@ -18,7 +18,7 @@ import React, {
 // Types
 // ---------------------------------------------------------------------------
 
-export interface RechargeCartItem {
+export interface TopupCartItem {
   /** Listing ID from the catalogue */
   listingId: string;
   catalogProductId: string;
@@ -32,9 +32,9 @@ export interface RechargeCartItem {
   displayName: string;
 }
 
-interface RechargeCartContextValue {
-  items: RechargeCartItem[];
-  addItem: (item: RechargeCartItem) => void;
+interface TopupCartContextValue {
+  items: TopupCartItem[];
+  addItem: (item: TopupCartItem) => void;
   removeItem: (listingId: string) => void;
   clearCart: () => void;
   totalCents: number;
@@ -44,18 +44,18 @@ interface RechargeCartContextValue {
 // Context
 // ---------------------------------------------------------------------------
 
-const RechargeCartContext = createContext<RechargeCartContextValue | null>(
+const TopupCartContext = createContext<TopupCartContextValue | null>(
   null
 );
 
-export function RechargeCartProvider({
+export function TopupCartProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [items, setItems] = useState<RechargeCartItem[]>([]);
+  const [items, setItems] = useState<TopupCartItem[]>([]);
 
-  const addItem = useCallback((item: RechargeCartItem) => {
+  const addItem = useCallback((item: TopupCartItem) => {
     setItems((prev) => {
       // Replace if same listing+phone combination already in cart
       const exists = prev.findIndex(
@@ -79,19 +79,19 @@ export function RechargeCartProvider({
   const totalCents = items.reduce((acc, i) => acc + i.sellPriceUsdCents, 0);
 
   return (
-    <RechargeCartContext.Provider
+    <TopupCartContext.Provider
       value={{ items, addItem, removeItem, clearCart, totalCents }}
     >
       {children}
-    </RechargeCartContext.Provider>
+    </TopupCartContext.Provider>
   );
 }
 
-export function useRechargeCart(): RechargeCartContextValue {
-  const ctx = useContext(RechargeCartContext);
+export function useTopupCart(): TopupCartContextValue {
+  const ctx = useContext(TopupCartContext);
   if (!ctx) {
     throw new Error(
-      "useRechargeCart must be used inside <RechargeCartProvider>"
+      "useTopupCart must be used inside <TopupCartProvider>"
     );
   }
   return ctx;

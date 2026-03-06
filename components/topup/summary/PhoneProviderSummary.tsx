@@ -1,5 +1,5 @@
 import { getFlagSource } from "@/constants/phoneCountries";
-import { RechargeProductListing } from "@/graphql/adminRechargeProductListings";
+import { TopupProductListing } from "@/graphql/adminTopupProductListings";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +11,7 @@ interface Props {
   phone: string;
   countryIso: string;
   callingCode: string;
-  listings: RechargeProductListing[];
+  listings: TopupProductListing[];
   selectedProviderCode: string | null;
   onEditPhone: () => void;
   onEditProvider: () => void;

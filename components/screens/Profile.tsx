@@ -60,9 +60,7 @@ export default function ProfileScreen() {
             icon="card"
             title="Métodos de pago"
             subtitle="Tarjetas y formas de pago"
-            onPress={() =>
-              router.navigate("/(protected)/(payment)/list-payments")
-            }
+            onPress={() => router.push("/services/payment/payment-methods")}
           />
         </ProfileSection>
 

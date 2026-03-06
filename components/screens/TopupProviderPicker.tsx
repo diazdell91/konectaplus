@@ -1,18 +1,20 @@
 import {
-  ServiceCategoriesData,
-  ServiceCategory,
-  ServiceItem,
-  SERVICE_CATEGORIES,
-} from "@/graphql/serviceCategories";
+  ADMIN_TOPUP_PRODUCT_LISTINGS,
+  AdminTopupProductListingsData,
+  AdminTopupProductListingsVars,
+  TopupProductListing,
+} from "@/graphql/adminTopupProductListings";
+import { useServiceSelectionStore } from "@/store/useServiceSelectionStore";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { useQuery } from "@apollo/client/react";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import React, { useMemo } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -20,115 +22,143 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Map iconName from API to a local image or fallback initials
-function ProviderLogo({ iconName, title }: { iconName: string; title: string }) {
-  // Derive initials as fallback
-  const initials = title
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
-
-  // If the iconName is a URL, render it as image
-  const isUrl = iconName?.startsWith("http");
-  if (isUrl) {
-    return <Image source={{ uri: iconName }} style={styles.providerLogo} resizeMode="contain" />;
-  }
-
-  return (
-    <View style={styles.providerLogoFallback}>
-      <Text style={styles.providerLogoInitials}>{initials}</Text>
-    </View>
-  );
+interface ProviderMeta {
+  providerCode: string;
+  name: string;
+  logoUrl: string | null;
+  count: number;
 }
 
-function CategorySection({ category, onSelect }: { category: ServiceCategory; onSelect: (item: ServiceItem) => void }) {
-  return (
-    <View style={styles.categoryBlock}>
-      {/* Section label */}
-      <View style={styles.categoryHeader}>
-        <View style={styles.categoryDot} />
-        <Text style={styles.categoryLabel}>{category.title}</Text>
-        <View style={styles.categoryLine} />
-      </View>
-
-      {/* Items */}
-      {category.items.map((item) => (
-        <Pressable
-          key={item.id}
-          style={({ pressed }) => [styles.itemRow, pressed && styles.itemRowPressed]}
-          onPress={() => onSelect(item)}
-        >
-          <ProviderLogo iconName={item.iconName} title={item.title} />
-          <View style={styles.itemText}>
-            <Text style={styles.itemTitle}>{item.title}</Text>
-            {item.subtitle ? (
-              <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
-            ) : null}
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={COLORS.primary.main} />
-        </Pressable>
-      ))}
-    </View>
-  );
+function buildProviders(listings: TopupProductListing[]): ProviderMeta[] {
+  const map = new Map<string, ProviderMeta>();
+  for (const item of listings) {
+    const existing = map.get(item.providerCode);
+    if (existing) {
+      existing.count += 1;
+      if (!existing.logoUrl && item.logoUrl) existing.logoUrl = item.logoUrl;
+    } else {
+      map.set(item.providerCode, {
+        providerCode: item.providerCode,
+        name: item.serviceProvider ?? item.providerCode,
+        logoUrl: item.logoUrl ?? null,
+        count: 1,
+      });
+    }
+  }
+  return Array.from(map.values());
 }
 
 export default function TopupProviderPicker() {
-  const router = useRouter();
+  const { country, setProviderId } = useServiceSelectionStore();
+  const countryIso2 = country.iso2;
 
-  const { data, loading, error, refetch } = useQuery<ServiceCategoriesData>(SERVICE_CATEGORIES, {
-    fetchPolicy: "cache-and-network",
+  const { data, loading, error, refetch } = useQuery<
+    AdminTopupProductListingsData,
+    AdminTopupProductListingsVars
+  >(ADMIN_TOPUP_PRODUCT_LISTINGS, {
+    variables: { status: "ACTIVE", countryIso: countryIso2, pageSize: 500 },
+    skip: !countryIso2,
+    fetchPolicy: "cache-first",
   });
 
-  const categories = data?.serviceCategories ?? [];
+  const listings: TopupProductListing[] =
+    data?.adminRechargeProductListings.items ?? [];
+
+  const providers = useMemo(() => buildProviders(listings), [listings]);
+
+  const handleSelect = (providerCode: string) => {
+    setProviderId(providerCode, "provider");
+    router.back();
+  };
 
   return (
     <View style={styles.root}>
-      {/* Handle bar */}
       <View style={styles.handleBar} />
 
-      {/* Header */}
       <SafeAreaView edges={[]} style={styles.headerWrap}>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Seleccione un servicio</Text>
+            <Text style={styles.title}>Seleccionar proveedor</Text>
             <Text style={styles.subtitle}>
-              Por favor, seleccione el proveedor o tipo de servicio para esta transacción
+              Elige el operador para esta recarga
             </Text>
           </View>
-          <Pressable style={styles.closeBtn} onPress={() => router.back()} hitSlop={12}>
+          <Pressable
+            style={styles.closeBtn}
+            onPress={() => router.back()}
+            hitSlop={12}
+          >
             <Ionicons name="close" size={20} color={COLORS.text.primary} />
           </Pressable>
         </View>
       </SafeAreaView>
 
-      {/* Content */}
-      {loading && categories.length === 0 ? (
+      {loading && providers.length === 0 ? (
         <View style={styles.centered}>
           <ActivityIndicator color={COLORS.primary.main} />
         </View>
       ) : error ? (
         <View style={styles.centered}>
-          <Ionicons name="alert-circle-outline" size={32} color={COLORS.semantic.error} />
-          <Text style={styles.errorText}>Error al cargar servicios</Text>
+          <Ionicons
+            name="alert-circle-outline"
+            size={32}
+            color={COLORS.semantic.error}
+          />
+          <Text style={styles.errorText}>Error al cargar proveedores</Text>
           <Pressable onPress={() => refetch()} style={styles.retryBtn}>
             <Text style={styles.retryText}>Reintentar</Text>
           </Pressable>
         </View>
+      ) : providers.length === 0 ? (
+        <View style={styles.centered}>
+          <Ionicons
+            name="wifi-outline"
+            size={40}
+            color={COLORS.neutral.gray300}
+          />
+          <Text style={styles.emptyText}>
+            No hay proveedores disponibles para este país
+          </Text>
+        </View>
       ) : (
         <FlatList
-          data={categories}
-          keyExtractor={(item) => item.id}
+          data={providers}
+          keyExtractor={(item) => item.providerCode}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <CategorySection
-              category={item}
-              onSelect={(serviceItem) => {
-                router.push(serviceItem.route as any);
-              }}
-            />
+            <Pressable
+              style={({ pressed }) => [
+                styles.row,
+                pressed && styles.rowPressed,
+              ]}
+              onPress={() => handleSelect(item.providerCode)}
+            >
+              {item.logoUrl ? (
+                <Image
+                  source={{ uri: item.logoUrl }}
+                  style={styles.logo}
+                  contentFit="contain"
+                />
+              ) : (
+                <View style={styles.logoPlaceholder}>
+                  <Text style={styles.logoInitial}>
+                    {item.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.rowText}>
+                <Text style={styles.providerName}>{item.name}</Text>
+                <Text style={styles.providerCount}>
+                  {item.count} producto{item.count !== 1 ? "s" : ""}
+                </Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={COLORS.primary.main}
+              />
+            </Pressable>
           )}
         />
       )}
@@ -152,8 +182,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 4,
   },
-
-  // ── Header
   headerWrap: {
     paddingHorizontal: 20,
     paddingTop: 12,
@@ -189,48 +217,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 2,
   },
-
-  // ── List
   listContent: {
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 40,
-    gap: 8,
+    gap: 10,
   },
-
-  // ── Category
-  categoryBlock: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  categoryHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 4,
-  },
-  categoryDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.primary.main,
-  },
-  categoryLabel: {
-    fontFamily: FONT_FAMILIES.semiBold,
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.text.secondary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  categoryLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.border.light,
-  },
-
-  // ── Item row
-  itemRow: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.surface.primary,
@@ -241,54 +234,60 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
   },
-  itemRowPressed: {
+  rowPressed: {
     backgroundColor: COLORS.background.secondary,
   },
-  providerLogo: {
+  logo: {
     width: 44,
-    height: 28,
+    height: 44,
+    borderRadius: 10,
   },
-  providerLogoFallback: {
+  logoPlaceholder: {
     width: 44,
-    height: 28,
-    borderRadius: 6,
-    backgroundColor: COLORS.background.tertiary,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: COLORS.neutral.gray100,
     alignItems: "center",
     justifyContent: "center",
   },
-  providerLogoInitials: {
+  logoInitial: {
     fontFamily: FONT_FAMILIES.bold,
-    fontSize: 11,
+    fontSize: 18,
     fontWeight: "700",
-    color: COLORS.text.secondary,
+    color: COLORS.primary.main,
   },
-  itemText: {
+  rowText: {
     flex: 1,
     gap: 2,
   },
-  itemTitle: {
+  providerName: {
     fontFamily: FONT_FAMILIES.semiBold,
     fontSize: 15,
     fontWeight: "600",
     color: COLORS.text.primary,
   },
-  itemSubtitle: {
+  providerCount: {
     fontFamily: FONT_FAMILIES.regular,
     fontSize: 12,
     color: COLORS.text.secondary,
   },
-
-  // ── States
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: 12,
+    paddingHorizontal: 32,
   },
   errorText: {
     fontFamily: FONT_FAMILIES.regular,
     fontSize: 14,
     color: COLORS.semantic.error,
+  },
+  emptyText: {
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    textAlign: "center",
   },
   retryBtn: {
     paddingHorizontal: 20,

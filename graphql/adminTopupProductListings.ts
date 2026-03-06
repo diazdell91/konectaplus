@@ -4,15 +4,15 @@ import { gql } from "@apollo/client";
 // Enums (mirror the backend schema)
 // ---------------------------------------------------------------------------
 
-export type RechargeListingStatus = "ACTIVE" | "INACTIVE" | "DRAFT";
+export type TopupListingStatus = "ACTIVE" | "INACTIVE" | "DRAFT";
 
-export type RechargeListingType = "BUNDLE" | "VOUCHER" | "DATA";
+export type TopupListingType = "BUNDLE" | "VOUCHER" | "DATA";
 
 // ---------------------------------------------------------------------------
 // Response types
 // ---------------------------------------------------------------------------
 
-export interface RechargeProductListing {
+export interface TopupProductListing {
   id: string;
   catalogProductId: string;
   variantKey: string;
@@ -21,9 +21,9 @@ export interface RechargeProductListing {
   serviceType: string | null;
   serviceProvider: string | null;
   providerCode: string;
-  rechargeType: RechargeListingType;
+  rechargeType: TopupListingType;
   countryIso: string;
-  status: RechargeListingStatus;
+  status: TopupListingStatus;
   pricingMode: string | null;
   receiveValue: number | null;
   receiveCurrency: string | null;
@@ -40,9 +40,9 @@ export interface RechargeProductListing {
   logoUrl: string | null;
 }
 
-export interface AdminRechargeProductListingsData {
+export interface AdminTopupProductListingsData {
   adminRechargeProductListings: {
-    items: RechargeProductListing[];
+    items: TopupProductListing[];
     total: number;
     page: number;
     pageSize: number;
@@ -50,11 +50,11 @@ export interface AdminRechargeProductListingsData {
   };
 }
 
-export interface AdminRechargeProductListingsVars {
-  status?: RechargeListingStatus;
+export interface AdminTopupProductListingsVars {
+  status?: TopupListingStatus;
   countryIso?: string;
   providerCode?: string;
-  rechargeType?: RechargeListingType;
+  rechargeType?: TopupListingType;
   q?: string;
   page?: number;
   pageSize?: number;
@@ -64,7 +64,7 @@ export interface AdminRechargeProductListingsVars {
 // Query document
 // ---------------------------------------------------------------------------
 
-export const ADMIN_RECHARGE_PRODUCT_LISTINGS = gql`
+export const ADMIN_TOPUP_PRODUCT_LISTINGS = gql`
   query AdminRechargeProductListings(
     $status: RechargeListingStatus
     $countryIso: String
@@ -122,7 +122,7 @@ export const ADMIN_RECHARGE_PRODUCT_LISTINGS = gql`
 // Ding recharge request builder
 // ---------------------------------------------------------------------------
 
-export interface DingRechargeRequest {
+export interface DingTopupRequest {
   providerCode: string;
   skuCodeProviderProduct: string;
   destinationPhone: string; // E.164
@@ -134,13 +134,13 @@ export interface DingRechargeRequest {
  * Builds the payload needed to execute a Ding recharge.
  * Does NOT call any API — only assembles the object.
  *
- * TODO: call the actual recharge mutation when the backend endpoint is ready.
+ * TODO: call the actual topup mutation when the backend endpoint is ready.
  */
-export function buildDingRechargeRequest(params: {
-  listing: RechargeProductListing;
+export function buildDingTopupRequest(params: {
+  listing: TopupProductListing;
   destinationPhone: string;
   countryIso: string;
-}): DingRechargeRequest {
+}): DingTopupRequest {
   return {
     providerCode: params.listing.providerCode,
     skuCodeProviderProduct: params.listing.skuCodeProviderProduct,

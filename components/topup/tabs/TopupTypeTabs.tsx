@@ -9,7 +9,7 @@
  * Tabs with 0 items are rendered as disabled (greyed out, non-pressable).
  */
 
-import { RechargeListingType } from "@/graphql/adminRechargeProductListings";
+import { TopupListingType } from "@/graphql/adminTopupProductListings";
 import COLORS from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import React from "react";
@@ -20,7 +20,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 // ---------------------------------------------------------------------------
 
 interface TabDef {
-  type: RechargeListingType;
+  type: TopupListingType;
   label: string;
 }
 
@@ -35,16 +35,16 @@ const TABS: TabDef[] = [
 // ---------------------------------------------------------------------------
 
 interface Props {
-  counts: Record<RechargeListingType, number>;
-  selectedType: RechargeListingType;
-  onSelectType: (type: RechargeListingType) => void;
+  counts: Record<TopupListingType, number>;
+  selectedType: TopupListingType;
+  onSelectType: (type: TopupListingType) => void;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-const RechargeTypeTabs = ({ counts, selectedType, onSelectType }: Props) => {
+const TopupTypeTabs = ({ counts, selectedType, onSelectType }: Props) => {
   // Only show tabs that have at least one item (or the currently selected one)
   const visibleTabs = TABS.filter(
     (t) => counts[t.type] > 0 || t.type === selectedType,
@@ -108,7 +108,7 @@ const RechargeTypeTabs = ({ counts, selectedType, onSelectType }: Props) => {
   );
 };
 
-export default RechargeTypeTabs;
+export default TopupTypeTabs;
 
 // ---------------------------------------------------------------------------
 // Styles

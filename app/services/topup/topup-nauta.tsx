@@ -12,7 +12,7 @@ import {
 
 const NAUTA_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function RechargeNautaScreen() {
+export default function TopupNautaScreen() {
   const [email, setEmail] = useState("");
   const [touched, setTouched] = useState(false);
 

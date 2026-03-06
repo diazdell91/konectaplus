@@ -1,4 +1,6 @@
+import { getFlagSource } from "@/constants/phoneCountries";
 import { FONT_FAMILIES } from "@/theme/typography";
+import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { avatarColor, initials } from "./avatarUtils";
@@ -7,7 +9,7 @@ export interface RowItemProps {
   displayName: string;
   phone: string;
   label: string;
-  flag: string | null;
+  countryIso: string | null;
   onPress?: () => void;
 }
 
@@ -15,11 +17,12 @@ const RowItem = ({
   displayName,
   phone,
   label,
-  flag,
+  countryIso,
   onPress,
 }: RowItemProps) => {
   const bg = avatarColor(displayName || phone);
   const ini = initials(displayName || phone);
+  const flagSource = countryIso ? getFlagSource(countryIso) : null;
 
   return (
     <Pressable
@@ -28,9 +31,9 @@ const RowItem = ({
     >
       <View style={[styles.avatarCircle, { backgroundColor: bg }]}>
         <Text style={styles.avatarInitials}>{ini}</Text>
-        {flag ? (
+        {flagSource ? (
           <View style={styles.flagBadge}>
-            <Text style={styles.flagText}>{flag}</Text>
+            <Image source={flagSource} style={styles.flagImage} contentFit="cover" />
           </View>
         ) : null}
       </View>
@@ -97,8 +100,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  flagText: {
-    fontSize: 12,
+  flagImage: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
   },
   rowContent: {
     flex: 1,

@@ -5,7 +5,6 @@ export default function ServicesLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
         headerTransparent: false,
         headerStyle: { backgroundColor: COLORS.surface.primary },
         headerTintColor: COLORS.text.primary,
@@ -17,24 +16,39 @@ export default function ServicesLayout() {
       }}
     >
       <Stack.Screen
-        name="recharge/mobile"
+        name="topup/topup-mobile"
         options={{ title: "Recarga Celular", headerShown: false }}
       />
       <Stack.Screen
-        name="recharge/recharge-flow"
-        options={{
-          headerShown: false,
-        }}
+        name="topup/topup-flow"
+        options={{ title: "Recarga Celular" }}
       />
       <Stack.Screen
-        name="recharge/phone-picker"
+        name="topup/topup-phone-picker"
         options={{
           title: "Seleccionar contacto",
           presentation: "card",
         }}
       />
-      <Stack.Screen name="recharge/nauta" options={{ title: "Nauta" }} />
+      <Stack.Screen name="topup/topup-nauta" options={{ title: "Nauta" }} />
+      <Stack.Screen
+        name="topup/topup-confirm"
+        options={{ title: "Confirmar recarga" }}
+      />
       <Stack.Screen name="wallet/topup" options={{ title: "Saldo" }} />
+      <Stack.Screen name="wallet/ledger" options={{ title: "Mi Wallet" }} />
+      <Stack.Screen
+        name="wallet/topup-confirm"
+        options={{ title: "Confirmar recarga" }}
+      />
+      <Stack.Screen
+        name="payment/payment-methods"
+        options={{ title: "Métodos de pago" }}
+      />
+      <Stack.Screen
+        name="payment/add-card"
+        options={{ title: "Añadir tarjeta" }}
+      />
       <Stack.Screen name="gift-cards" options={{ title: "Tarjeta regalo" }} />
     </Stack>
   );

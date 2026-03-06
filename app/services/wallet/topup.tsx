@@ -1,21 +1,38 @@
+import WalletTopupChip from "@/components/wallet/WalletTopupChip";
 import { Button, Text } from "@/components/ui";
+import {
+  WALLET_TOPUP_PRODUCTS,
+  WalletTopupProduct,
+  WalletTopupProductsData,
+} from "@/graphql/walletTopupProducts";
 import { COLORS } from "@/theme/colors";
 import { SPACING } from "@/theme/spacing";
+import { useQuery } from "@apollo/client/react";
+import { router } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-const AMOUNTS = [5, 10, 20, 50, 100];
-
-/**
- * Recarga Saldo (Wallet) — inputKind: NONE
- * Pantalla de selección de monto para recargar el saldo del wallet.
- */
 export default function WalletTopupScreen() {
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<WalletTopupProduct | null>(null);
+
+  const { data, loading, error } = useQuery<WalletTopupProductsData>(
+    WALLET_TOPUP_PRODUCTS,
+    { fetchPolicy: "cache-and-network" },
+  );
+
+  const products = (data?.walletTopupProducts ?? []).filter((p) => p.isActive);
 
   const handleContinue = () => {
-    // TODO: navegar a pantalla de confirmación / pago
-    console.log("wallet topup amount:", selected);
+    if (!selected) return;
+    router.push({
+      pathname: "/services/wallet/topup-confirm",
+      params: {
+        productId: selected.productId,
+        amountCents: String(selected.amountCents),
+        priceCents: String(selected.priceCents),
+        feeCents: String(selected.feeCents),
+      },
+    });
   };
 
   return (
@@ -29,22 +46,38 @@ export default function WalletTopupScreen() {
             Selecciona el monto que deseas agregar a tu saldo.
           </Text>
 
-          <View style={styles.grid}>
-            {AMOUNTS.map((amount) => (
-              <AmountChip
-                key={amount}
-                amount={amount}
-                selected={selected === amount}
-                onPress={() => setSelected(amount)}
-              />
-            ))}
-          </View>
+          {loading && products.length === 0 ? (
+            <View style={styles.centered}>
+              <ActivityIndicator color={COLORS.primary.main} />
+            </View>
+          ) : error ? (
+            <View style={styles.centered}>
+              <Text body color={COLORS.semantic.error}>
+                Error al cargar los montos disponibles.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.grid}>
+              {products.map((product) => (
+                <WalletTopupChip
+                  key={product.id}
+                  product={product}
+                  selected={selected?.id === product.id}
+                  onPress={() => setSelected(product)}
+                />
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.footer}>
           <Button
             variant="primary"
-            title={selected ? `Recargar $${selected}` : "Selecciona un monto"}
+            title={
+              selected
+                ? `Recargar $${(selected.amountCents / 100).toFixed(0)}`
+                : "Selecciona un monto"
+            }
             onPress={handleContinue}
             disabled={selected === null}
           />
@@ -53,58 +86,6 @@ export default function WalletTopupScreen() {
     </View>
   );
 }
-
-interface AmountChipProps {
-  amount: number;
-  selected: boolean;
-  onPress: () => void;
-}
-
-function AmountChip({ amount, selected, onPress }: AmountChipProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        chipStyles.chip,
-        selected && chipStyles.chipSelected,
-        pressed && chipStyles.chipPressed,
-      ]}
-    >
-      <Text style={[chipStyles.label, selected && chipStyles.labelSelected]}>
-        ${amount}
-      </Text>
-    </Pressable>
-  );
-}
-
-const chipStyles = StyleSheet.create({
-  chip: {
-    borderWidth: 1.5,
-    borderColor: COLORS.border.light,
-    borderRadius: 16,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    minWidth: 80,
-  },
-  chipSelected: {
-    borderColor: COLORS.primary.main,
-    backgroundColor: `${COLORS.primary.main}15`,
-  },
-  chipPressed: {
-    opacity: 0.7,
-  },
-  label: {
-    fontFamily: "Montserrat-SemiBold",
-    fontSize: 18,
-    color: COLORS.text.primary,
-  },
-  labelSelected: {
-    color: COLORS.primary.main,
-  },
-});
 
 const styles = StyleSheet.create({
   root: {
@@ -133,6 +114,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: SPACING.sm,
     marginTop: SPACING.md,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   footer: {
     paddingTop: SPACING.lg,

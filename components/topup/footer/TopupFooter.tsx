@@ -1,4 +1,4 @@
-import { RechargeProductListing } from "@/graphql/adminRechargeProductListings";
+import { TopupProductListing } from "@/graphql/adminTopupProductListings";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { formatUsd } from "@/utils/currency";
@@ -6,19 +6,19 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-interface RechargeFooterProps {
-  selectedListing: RechargeProductListing | null;
+interface TopupFooterProps {
+  selectedListing: TopupProductListing | null;
   canProceed: boolean;
   onAddToCart: () => void;
   onPayNow: () => void;
 }
 
-const RechargeFooter = ({
+const TopupFooter = ({
   selectedListing,
   canProceed,
   onAddToCart,
   onPayNow,
-}: RechargeFooterProps) => (
+}: TopupFooterProps) => (
   <View style={styles.footer}>
     {/* Selection summary */}
     {selectedListing && (
@@ -95,7 +95,7 @@ const RechargeFooter = ({
   </View>
 );
 
-export default RechargeFooter;
+export default TopupFooter;
 
 const styles = StyleSheet.create({
   footer: {

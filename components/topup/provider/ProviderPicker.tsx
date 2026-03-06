@@ -6,7 +6,7 @@
  * The selected provider gets a green border + check badge.
  */
 
-import { RechargeProductListing } from "@/graphql/adminRechargeProductListings";
+import { TopupProductListing } from "@/graphql/adminTopupProductListings";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,7 +26,7 @@ export interface ProviderMeta {
 }
 
 interface Props {
-  listings: RechargeProductListing[];
+  listings: TopupProductListing[];
   selectedProviderCode: string | null;
   onSelectProvider: (providerCode: string) => void;
 }
@@ -35,7 +35,7 @@ interface Props {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function buildProviders(listings: RechargeProductListing[]): ProviderMeta[] {
+function buildProviders(listings: TopupProductListing[]): ProviderMeta[] {
   const map = new Map<string, ProviderMeta>();
 
   for (const item of listings) {
@@ -92,7 +92,6 @@ const ProviderPicker = ({
               ]}
               onPress={() => onSelectProvider(provider.providerCode)}
               accessibilityRole="button"
-              accessibilityLabel={`Proveedor ${provider.name}`}
               accessibilityState={{ selected: isSelected }}
             >
               {/* Logo or initials */}
@@ -109,16 +108,6 @@ const ProviderPicker = ({
                   </Text>
                 </View>
               )}
-
-              <Text
-                style={[
-                  styles.providerName,
-                  isSelected && styles.providerNameSelected,
-                ]}
-                numberOfLines={1}
-              >
-                {provider.name}
-              </Text>
 
               {/* Selected check badge */}
               {isSelected && (
@@ -201,18 +190,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: COLORS.primary.main,
-  },
-  providerName: {
-    fontFamily: FONT_FAMILIES.medium,
-    fontSize: 11,
-    fontWeight: "500",
-    color: COLORS.text.secondary,
-    textAlign: "center",
-  },
-  providerNameSelected: {
-    color: COLORS.primary.main,
-    fontFamily: FONT_FAMILIES.semiBold,
-    fontWeight: "600",
   },
   checkBadge: {
     position: "absolute",

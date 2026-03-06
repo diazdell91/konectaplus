@@ -69,28 +69,23 @@ const ContactsList = ({
     c.displayName.toLowerCase().includes(q) ||
     c.primaryPhone.toLowerCase().includes(q);
 
-  // Split into country-matching and others
-  const countryContacts = contacts.filter(
-    (c) => countryIso && c.countryIso === countryIso && matchesQuery(c)
-  );
-  const otherContacts = contacts.filter(
-    (c) =>
-      !(countryIso && c.countryIso === countryIso) && matchesQuery(c)
-  );
+  // When a country filter is active, show only contacts from that country
+  const filteredContacts = countryIso
+    ? contacts.filter((c) => c.countryIso === countryIso && matchesQuery(c))
+    : contacts.filter(matchesQuery);
 
-  // Build sections: country group (single section) + letter sections for others
   const countryInfo = countryIso ? getCountryByIso(countryIso) : null;
   const sections: Section[] = [];
 
-  if (countryContacts.length > 0) {
+  if (countryIso && filteredContacts.length > 0) {
     sections.push({
       title: countryInfo?.nameEs ?? countryIso ?? "",
       isCountryGroup: true,
-      data: countryContacts,
+      data: filteredContacts,
     });
+  } else {
+    sections.push(...buildLetterSections(filteredContacts));
   }
-
-  sections.push(...buildLetterSections(otherContacts));
 
   // Alphabet index only for letter sections (not the country group)
   const alphabet = sections
@@ -98,7 +93,9 @@ const ContactsList = ({
     .map((s) => s.title);
 
   const scrollToLetter = (letter: string) => {
-    const idx = sections.findIndex((s) => !s.isCountryGroup && s.title === letter);
+    const idx = sections.findIndex(
+      (s) => !s.isCountryGroup && s.title === letter,
+    );
     if (idx >= 0 && listRef.current) {
       listRef.current.scrollToLocation({
         sectionIndex: idx,
@@ -154,15 +151,18 @@ const ContactsList = ({
         ref={listRef}
         sections={sections}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <RowItem
-            displayName={item.displayName}
-            phone={item.primaryPhone}
-            label={item.label}
-            flag={item.flag}
-            onPress={() => onSelect(item.primaryPhone)}
-          />
-        )}
+        renderItem={({ item }) => {
+          console.log(JSON.stringify(item, null, 2));
+          return (
+            <RowItem
+              displayName={item.displayName}
+              phone={item.primaryPhone}
+              label={item.label}
+              countryIso={item.countryIso}
+              onPress={() => onSelect(item.primaryPhone)}
+            />
+          );
+        }}
         renderSectionHeader={({ section }) =>
           section.isCountryGroup ? (
             <View style={styles.countryHeader}>

@@ -1,12 +1,12 @@
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
-import { RechargeProductListing } from "@/graphql/adminRechargeProductListings";
+import { TopupProductListing } from "@/graphql/adminTopupProductListings";
 import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import ProviderPicker from "./ProviderPicker";
 
 interface Props {
-  listings: RechargeProductListing[];
+  listings: TopupProductListing[];
   loading: boolean;
   error: Error | undefined;
   selectedProviderCode: string | null;

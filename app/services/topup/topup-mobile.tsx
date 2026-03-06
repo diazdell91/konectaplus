@@ -1,5 +1,5 @@
 import { TopupContactTab } from "@/components/topup";
 
-export default function RechargeMobileScreen() {
+export default function TopupMobileScreen() {
   return <TopupContactTab />;
 }

@@ -1,8 +1,12 @@
 import { usePhoneCountry } from "@/context/PhoneCountry";
+import {
+  ServiceInputKind,
+  ServiceType,
+  useServiceSelectionStore,
+} from "@/store/useServiceSelectionStore";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ContactsList from "../contacts/ContactsList";
 import { useContacts } from "../contacts/useContacts";
 import SearchBar from "../search/SearchBar";
@@ -10,16 +14,30 @@ import SearchBar from "../search/SearchBar";
 const TopupContactTab = () => {
   const [query, setQuery] = useState("");
   const { contacts, loading, permission, loadContacts } = useContacts();
-  const { bottom } = useSafeAreaInsets();
   const { country, dialCode } = usePhoneCountry();
-  console.log(country);
+
+  const { hydrateFromContact, startSelection, setCountryIso2 } =
+    useServiceSelectionStore();
+
+  useEffect(() => {
+    startSelection({
+      serviceType: ServiceType.RECHARGE_MOBILE,
+      inputKind: ServiceInputKind.PHONE,
+    });
+  }, [startSelection]);
 
   useEffect(() => {
     loadContacts();
   }, [loadContacts]);
 
+  const handleSelectContact = (phone: string) => {
+    hydrateFromContact(phone);
+    setCountryIso2(country.iso);
+    router.push("/services/topup/topup-flow");
+  };
+
   return (
-    <View style={{ flex: 1, paddingBottom: bottom }}>
+    <View style={{ flex: 1 }}>
       <SearchBar
         value={query}
         onChangeText={setQuery}
@@ -34,12 +52,7 @@ const TopupContactTab = () => {
         permissionDenied={permission === "denied"}
         query={query}
         countryIso={country.iso}
-        onSelect={(phone) =>
-          router.push({
-            pathname: "/services/recharge/recharge-flow",
-            params: { phone },
-          })
-        }
+        onSelect={handleSelectContact}
         onRequestPermission={loadContacts}
       />
     </View>

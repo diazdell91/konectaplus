@@ -1,7 +1,7 @@
 /**
  * OfferList
  *
- * FlatList of RechargeProductListing cards for a specific provider + type.
+ * FlatList of TopupProductListing cards for a specific provider + type.
  *
  * Sort order:
  *   1. isFeatured DESC
@@ -10,9 +10,9 @@
  */
 
 import {
-  RechargeListingType,
-  RechargeProductListing,
-} from "@/graphql/adminRechargeProductListings";
+  TopupListingType,
+  TopupProductListing,
+} from "@/graphql/adminTopupProductListings";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { discountPercent, formatUsd } from "@/utils/currency";
@@ -25,11 +25,11 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 // ---------------------------------------------------------------------------
 
 interface Props {
-  listings: RechargeProductListing[];
+  listings: TopupProductListing[];
   providerCode: string | null;
-  rechargeType: RechargeListingType;
+  rechargeType: TopupListingType;
   selectedListingId: string | null;
-  onSelectListing: (listing: RechargeProductListing) => void;
+  onSelectListing: (listing: TopupProductListing) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -37,8 +37,8 @@ interface Props {
 // ---------------------------------------------------------------------------
 
 function sortListings(
-  items: RechargeProductListing[],
-): RechargeProductListing[] {
+  items: TopupProductListing[],
+): TopupProductListing[] {
   return [...items].sort((a, b) => {
     if (b.isFeatured !== a.isFeatured) return b.isFeatured ? 1 : -1;
     if (a.priority !== b.priority) return a.priority - b.priority;

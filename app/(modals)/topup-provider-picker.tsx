@@ -1,8 +1,6 @@
 import TopupProviderPicker from "@/components/screens/TopupProviderPicker";
 import React from "react";
 
-const TopupProviderPickerModal = () => {
+export default function TopupProviderPickerModal() {
   return <TopupProviderPicker />;
-};
-
-export default TopupProviderPickerModal;
+}

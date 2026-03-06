@@ -35,7 +35,7 @@ const HistoryList = ({ items, onSelect }: Props) => {
           displayName={item.name ?? ""}
           phone={item.phone}
           label={item.label}
-          flag={item.flag}
+          countryIso={item.countryCode}
           onPress={() => onSelect(item.phone)}
         />
       )}
