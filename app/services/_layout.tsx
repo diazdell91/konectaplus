@@ -52,6 +52,13 @@ export default function ServicesLayout() {
       <Stack.Screen name="gift-cards" options={{ title: "Tarjeta regalo" }} />
       <Stack.Screen name="orders/my-orders" options={{ title: "Mis Pedidos" }} />
       <Stack.Screen name="orders/[orderId]" options={{ title: "Detalle del pedido" }} />
+      <Stack.Screen name="profile/basic-info" options={{ title: "Información básica" }} />
+      <Stack.Screen name="profile/addresses" options={{ title: "Mis Direcciones" }} />
+      <Stack.Screen name="profile/recipients" options={{ title: "Mis Beneficiarios" }} />
+      <Stack.Screen name="profile/notifications" options={{ title: "Notificaciones" }} />
+      <Stack.Screen name="profile/change-password" options={{ title: "Cambiar contraseña" }} />
+      <Stack.Screen name="profile/sessions" options={{ title: "Sesiones activas" }} />
+      <Stack.Screen name="profile/help-center" options={{ title: "Ayuda" }} />
     </Stack>
   );
 }

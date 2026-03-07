@@ -210,7 +210,7 @@ interface ServiceSelectionActions {
   setAccountRaw(value: string, source?: SelectionSource): void;
 
   // Hydrators
-  hydrateFromContact(phoneRaw: string): void;
+  hydrateFromContact(phoneRaw: string, dialCode?: string): void;
   hydrateFromManualPhone(phoneRaw: string): void;
   hydrateFromPromo(payload: {
     serviceType: ServiceType;
@@ -384,18 +384,14 @@ export const useServiceSelectionStore = create<
   // Hydrators
   // -------------------------------------------------------------------------
 
-  hydrateFromContact(phoneRaw) {
+  hydrateFromContact(phoneRaw, _dialCode) {
     const store = get();
     store.setInputKind(ServiceInputKind.PHONE);
-    store.setAccountRaw(phoneRaw, "contact");
 
-    const normalized = normalizePhoneE164(phoneRaw);
-    if (normalized) {
-      const detected = detectCountryFromPhone(normalized);
-      if (detected) {
-        store.setCountryFromDialCode(detected.callingCode, "contact");
-      }
-    }
+    // Strip all non-digit characters — the number already includes the country code
+    const digitsOnly = phoneRaw.replace(/\D/g, "");
+
+    store.setAccountRaw(digitsOnly, "contact");
     set({ source: "contact" });
   },
 

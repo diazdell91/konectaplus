@@ -1,10 +1,10 @@
 import PaymentMethodPicker from "@/components/payment/PaymentMethodPicker";
 import SummaryRow from "@/components/payment/SummaryRow";
 import { Button, Text } from "@/components/ui";
-import { SavedCard } from "@/graphql/paymentMethods";
 import {
   WALLET_CREATE_TOPUP_INTENT, // esta debe apuntar a walletCreateTopupIntentUSD
 } from "@/graphql/walletTopupProducts";
+import { SelectedPaymentMethod, usePaymentStore } from "@/store/usePaymentStore";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { formatUsd } from "@/utils/currency";
@@ -12,9 +12,9 @@ import { useMutation } from "@apollo/client/react";
 import { Ionicons } from "@expo/vector-icons";
 import { PaymentIntent, useStripe } from "@stripe/stripe-react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Text as RNText, StyleSheet, View } from "react-native";
-import { toast } from "sonner-native";
+import { showToast } from "@/utils/toast";
 
 type WalletTopupIntentResult = {
   paymentAttemptId: string;
@@ -47,8 +47,14 @@ export default function WalletTopupConfirmScreen() {
   const price = useMemo(() => Number(priceCents), [priceCents]);
   const fee = useMemo(() => Number(feeCents), [feeCents]);
 
-  const [selectedCard, setSelectedCard] = useState<SavedCard | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<SelectedPaymentMethod | null>(null);
+  const clearStoredMethod = usePaymentStore((s) => s.clearSelectedMethod);
   const [isConfirming, setIsConfirming] = useState(false);
+
+  // Limpia cualquier selección previa del store al entrar a esta pantalla
+  useEffect(() => {
+    clearStoredMethod();
+  }, []);
 
   const [attempt, setAttempt] = useState<{
     paymentAttemptId: string;
@@ -63,13 +69,14 @@ export default function WalletTopupConfirmScreen() {
   });
 
   const loading = creatingIntent || isConfirming;
+  const selectedCard = selectedMethod?.type === "CARD" ? selectedMethod.card : null;
   const canConfirm = !!selectedCard && !loading;
 
   const handleConfirm = async () => {
     console.log("[WalletTopup] handleConfirm — selectedCard:", selectedCard?.id, "| loading:", loading);
 
     if (!selectedCard) {
-      toast.error("Selecciona una tarjeta para continuar.");
+      showToast.error("Selecciona una tarjeta para continuar.");
       return;
     }
     if (loading) return;
@@ -108,7 +115,7 @@ export default function WalletTopupConfirmScreen() {
 
       if (res.error) {
         console.warn("[WalletTopup] Stripe error:", res.error);
-        toast.error(res.error.message ?? "No se pudo confirmar el pago.");
+        showToast.error(res.error.message ?? "No se pudo confirmar el pago.");
         return;
       }
 
@@ -117,28 +124,28 @@ export default function WalletTopupConfirmScreen() {
 
       if (status === PaymentIntent.Status.Succeeded) {
         console.log("[WalletTopup] ✅ Succeeded");
-        toast.success("Recarga completada ✅");
+        showToast.success("Recarga completada");
         router.replace("/(tabs)/(home)");
         return;
       }
 
       if (status === PaymentIntent.Status.Processing) {
         console.log("[WalletTopup] ⏳ Processing");
-        toast.message("Pago en procesamiento. Puede tardar unos segundos.");
+        showToast.info("Pago en procesamiento. Puede tardar unos segundos.");
         return;
       }
 
       if (status === PaymentIntent.Status.RequiresAction) {
         console.log("[WalletTopup] ⚠️ RequiresAction");
-        toast.message("Se requiere acción adicional para completar el pago.");
+        showToast.info("Se requiere acción adicional para completar el pago.");
         return;
       }
 
       console.warn("[WalletTopup] Estado inesperado:", status);
-      toast.message(`Estado del pago: ${status ?? "Unknown"}`);
+      showToast.info(`Estado del pago: ${status ?? "Unknown"}`);
     } catch (e: any) {
       console.error("[WalletTopup] catch error:", e);
-      toast.error(e?.message ?? "Ocurrió un error procesando el pago.");
+      showToast.error(e?.message ?? "Ocurrió un error procesando el pago.");
     } finally {
       setIsConfirming(false);
       console.log("[WalletTopup] handleConfirm — finally");
@@ -179,8 +186,9 @@ export default function WalletTopupConfirmScreen() {
 
           <RNText style={styles.sectionLabel}>Método de pago</RNText>
           <PaymentMethodPicker
-            selectedCard={selectedCard}
-            onSelect={setSelectedCard}
+            selectedMethod={selectedMethod}
+            onSelect={setSelectedMethod}
+            hideWallet
           />
 
           {/* UI opcional */}

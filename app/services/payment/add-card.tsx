@@ -25,7 +25,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { toast } from "sonner-native";
+import { showToast } from "@/utils/toast";
 
 type CardNetwork = "visa" | "mastercard" | "amex" | "unknown";
 
@@ -100,10 +100,10 @@ export default function AddCardScreen() {
         variables: { stripePaymentMethodId: setupIntent.paymentMethodId },
       });
 
-      toast.success("Tarjeta guardada correctamente");
+      showToast.success("Tarjeta guardada correctamente");
       router.back();
     } catch (err: any) {
-      toast.error(err?.message ?? "Error al guardar la tarjeta");
+      showToast.error(err?.message ?? "Error al guardar la tarjeta");
     } finally {
       setSaving(false);
     }

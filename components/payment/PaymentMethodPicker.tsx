@@ -27,9 +27,10 @@ function brandConfig(brand: string) {
 interface Props {
   selectedMethod: SelectedPaymentMethod | null;
   onSelect: (method: SelectedPaymentMethod) => void;
+  hideWallet?: boolean;
 }
 
-const PaymentMethodPicker = ({ selectedMethod, onSelect }: Props) => {
+const PaymentMethodPicker = ({ selectedMethod, onSelect, hideWallet }: Props) => {
   const storeMethod = usePaymentStore((s) => s.selectedMethod);
 
   const { data, loading } = useQuery<MyCardsData>(MY_CARDS, {
@@ -107,7 +108,12 @@ const PaymentMethodPicker = ({ selectedMethod, onSelect }: Props) => {
   return (
     <Pressable
       style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed]}
-      onPress={() => router.push("/(modals)/payment-method-picker")}
+      onPress={() =>
+        router.push({
+          pathname: "/(modals)/payment-method-picker",
+          params: hideWallet ? { hideWallet: "1" } : {},
+        })
+      }
     >
       {renderSelected()}
       <Ionicons name="chevron-forward" size={18} color={COLORS.primary.main} />

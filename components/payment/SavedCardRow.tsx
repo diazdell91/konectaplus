@@ -10,7 +10,7 @@ import { useMutation } from "@apollo/client/react";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Alert, ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { toast } from "sonner-native";
+import { showToast } from "@/utils/toast";
 
 interface Props {
   card: SavedCard;
@@ -43,9 +43,9 @@ const SavedCardRow = ({ card }: Props) => {
             setDeleting(true);
             try {
               await deleteCard({ variables: { cardId: card.id } });
-              toast.success("Tarjeta eliminada");
+              showToast.success("Tarjeta eliminada");
             } catch (err: any) {
-              toast.error(err?.message ?? "Error al eliminar la tarjeta");
+              showToast.error(err?.message ?? "Error al eliminar la tarjeta");
             } finally {
               setDeleting(false);
             }

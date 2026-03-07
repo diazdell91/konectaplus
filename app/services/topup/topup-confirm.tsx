@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, Text as RNText, View } from "react-native";
-import { toast } from "sonner-native";
+import { showToast } from "@/utils/toast";
 
 export default function TopupConfirmScreen() {
   const {
@@ -61,7 +61,7 @@ export default function TopupConfirmScreen() {
 
     const input = {
       productListingId: listingId!,
-      accountNumber: phoneE164!,
+      accountNumber: phoneE164!.replace(/^\+/, ""),
       paymentMethod: isWallet ? ("WALLET" as const) : ("CARD" as const),
       ...(cardId ? { cardId } : {}),
     };
@@ -95,7 +95,7 @@ export default function TopupConfirmScreen() {
       // Caso 1: off-session OK o wallet — recarga procesada
       if (!result.requiresAction) {
         console.log("[TopupConfirm] completado | orderId:", result.orderId);
-        toast.success("Recarga enviada correctamente");
+        showToast.success("Recarga enviada correctamente");
         router.back();
         return;
       }
@@ -118,11 +118,11 @@ export default function TopupConfirmScreen() {
       }
 
       console.log("[TopupConfirm] 3DS superado | orderId:", result.orderId);
-      toast.success("Recarga procesada correctamente");
+      showToast.success("Recarga procesada correctamente");
       router.back();
     } catch (err: any) {
       console.error("[TopupConfirm] error:", err);
-      toast.error(err?.message ?? "Error al procesar la recarga");
+      showToast.error(err?.message ?? "Error al procesar la recarga");
     } finally {
       setSubmitting(false);
     }

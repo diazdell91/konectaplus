@@ -31,7 +31,7 @@ const TopupContactTab = () => {
   }, [loadContacts]);
 
   const handleSelectContact = (phone: string) => {
-    hydrateFromContact(phone);
+    hydrateFromContact(phone, dialCode);
     setCountryIso2(country.iso);
     router.push("/services/topup/topup-flow");
   };

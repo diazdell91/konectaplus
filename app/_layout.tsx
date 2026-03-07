@@ -4,6 +4,8 @@ import {
   ReanimatedLogLevel,
 } from "react-native-reanimated";
 import { Toaster } from "sonner-native";
+import { COLORS } from "@/theme/colors";
+import { FONT_FAMILIES } from "@/theme/typography";
 
 // Native imports
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -59,11 +61,10 @@ function AppContent() {
       {/* rutas de servicios */}
       <Stack.Screen name="services" options={{ headerShown: false }} />
 
-      {/* <Stack.Screen name="privacy-policy" options={{ presentation: "modal" }} />
       <Stack.Screen
-        name="terms-of-service"
-        options={{ presentation: "modal" }}
-      /> */}
+        name="privacy-policy"
+        options={{ headerShown: true, title: "Política de privacidad" }}
+      />
     </Stack>
   );
 }
@@ -89,10 +90,54 @@ export default function RootLayout() {
                     <AppContent />
 
                     <Toaster
+                      position="bottom-center"
+                      richColors
+                      swipeToDismissDirection="left"
+                      gap={8}
+                      offset={16}
                       style={{
-                        backgroundColor: "black",
-                        borderWidth: 1,
-                        borderColor: "#FFFFFF20",
+                        borderRadius: 14,
+                      }}
+                      toastOptions={{
+                        style: {
+                          backgroundColor: COLORS.surface.primary,
+                          borderWidth: 1,
+                          borderColor: COLORS.border.light,
+                          borderRadius: 14,
+                          paddingHorizontal: 14,
+                          paddingVertical: 12,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: 0.08,
+                          shadowRadius: 12,
+                          elevation: 6,
+                        },
+                        titleStyle: {
+                          fontFamily: FONT_FAMILIES.semiBold,
+                          fontSize: 14,
+                          color: COLORS.text.primary,
+                        },
+                        descriptionStyle: {
+                          fontFamily: FONT_FAMILIES.regular,
+                          fontSize: 13,
+                          color: COLORS.text.secondary,
+                        },
+                        success: {
+                          borderColor: COLORS.primary.main + "40",
+                          backgroundColor: "#EAF7F5",
+                        },
+                        error: {
+                          borderColor: COLORS.semantic.error + "40",
+                          backgroundColor: "#FEF2F2",
+                        },
+                        warning: {
+                          borderColor: "#F59E0B40",
+                          backgroundColor: "#FFFBEB",
+                        },
+                        info: {
+                          borderColor: COLORS.border.light,
+                          backgroundColor: COLORS.surface.primary,
+                        },
                       }}
                     />
                   </PressablesConfig>

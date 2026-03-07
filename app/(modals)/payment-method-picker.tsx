@@ -6,7 +6,7 @@ import { FONT_FAMILIES } from "@/theme/typography";
 import { formatUsd } from "@/utils/currency";
 import { useQuery } from "@apollo/client/react";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
 import {
   ActivityIndicator,
@@ -35,6 +35,9 @@ function brandConfig(brand: string) {
 }
 
 export default function PaymentMethodPickerScreen() {
+  const { hideWallet: hideWalletParam } = useLocalSearchParams<{ hideWallet?: string }>();
+  const hideWallet = hideWalletParam === "1";
+
   const { selectedMethod, setSelectedMethod } = usePaymentStore();
 
   const { data: walletData, loading: walletLoading } =
@@ -86,7 +89,7 @@ export default function PaymentMethodPickerScreen() {
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
 
           {/* ── Wallet ── */}
-          {balance !== null && (
+          {!hideWallet && balance !== null && (
             <>
               <Text style={styles.sectionLabel}>Saldo digital</Text>
               <Pressable

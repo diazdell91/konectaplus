@@ -6,16 +6,21 @@ import {
   SocialLinks,
 } from "@/components";
 import { Screen, ScreenHeader } from "@/components/ui";
-import { ScrollView, StyleSheet } from "react-native";
-
+import { ME, MeData } from "@/graphql/me";
 import { useAuth } from "@/context/AuthProvider";
 import { SPACING } from "@/theme";
+import { useQuery } from "@apollo/client/react";
 import { router } from "expo-router";
+import { ScrollView, StyleSheet } from "react-native";
 
 export default function ProfileScreen() {
-  const { auth, logout } = useAuth();
+  const { logout } = useAuth();
 
-  console.log(JSON.stringify(auth, null, 2));
+  const { data } = useQuery<MeData>(ME, { fetchPolicy: "cache-and-network" });
+
+  const profile = data?.me?.profile;
+  const displayName = profile?.fullName ?? profile?.firstName ?? data?.me?.phone ?? "Mi Perfil";
+  const subtitle = data?.me?.email ?? "Gestiona tu cuenta y preferencias";
 
   const handleSignOut = () => {
     logout();
@@ -24,8 +29,8 @@ export default function ProfileScreen() {
   return (
     <Screen safeArea edges={["top"]}>
       <ScreenHeader
-        title="Mi Perfil"
-        subtitle="Gestiona tu cuenta y preferencias"
+        title={displayName}
+        subtitle={subtitle}
         iconName="man"
       />
 
@@ -38,23 +43,19 @@ export default function ProfileScreen() {
             icon="profile"
             title="Información básica"
             subtitle="Nombre, correo y teléfono"
-            onPress={() =>
-              router.navigate("/(protected)/(profile)/profile-screen")
-            }
+            onPress={() => router.push("/services/profile/basic-info")}
           />
           <ProfileListItem
             icon="location"
             title="Mis Direcciones"
             subtitle="Gestiona tus ubicaciones de envío"
-            onPress={() => router.push("/(protected)/(address)/list-address")}
+            onPress={() => router.push("/services/profile/addresses")}
           />
           <ProfileListItem
             icon="family"
             title="Mis Beneficiarios"
             subtitle="Personas que reciben tus envíos"
-            onPress={() =>
-              router.navigate("/(protected)/(recipient)/list-recipients")
-            }
+            onPress={() => router.push("/services/profile/recipients")}
           />
           <ProfileListItem
             icon="card"
@@ -75,17 +76,22 @@ export default function ProfileScreen() {
             icon="notification"
             title="Notificaciones"
             subtitle="Configura tus alertas"
-            onPress={() =>
-              router.navigate("/(protected)/(profile)/preferences")
-            }
+            onPress={() => router.push("/services/profile/notifications")}
           />
+        </ProfileSection>
+
+        <ProfileSection title="Seguridad">
           <ProfileListItem
             icon="security"
             title="Cambiar contraseña"
             subtitle="Actualiza tu clave de acceso"
-            onPress={() =>
-              router.navigate("/(protected)/(profile)/change-pass")
-            }
+            onPress={() => router.push("/services/profile/change-password")}
+          />
+          <ProfileListItem
+            icon="shield-checkmark-outline"
+            title="Sesiones activas"
+            subtitle="Dispositivos con acceso a tu cuenta"
+            onPress={() => router.push("/services/profile/sessions")}
           />
         </ProfileSection>
 
@@ -94,15 +100,13 @@ export default function ProfileScreen() {
             icon="agent"
             title="Ayuda"
             subtitle="Centro de soporte y preguntas"
-            onPress={() =>
-              router.navigate("/(protected)/(profile)/help-center")
-            }
+            onPress={() => router.push("/services/profile/help-center")}
           />
           <ProfileListItem
             icon="safety"
             title="Política de privacidad"
             subtitle="Términos y condiciones de uso"
-            onPress={() => router.push("/(protected)/(profile)/privacy-policy")}
+            onPress={() => router.push("/privacy-policy")}
           />
         </ProfileSection>
 
