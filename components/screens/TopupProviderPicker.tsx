@@ -44,20 +44,25 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function TopupProviderPicker() {
-  const { country, selectedService } = useServiceSelectionStore();
+  const { country } = useServiceSelectionStore();
   const countryIso2 = country.iso2;
-  const serviceItemKey = selectedService.serviceType ?? "RECHARGE_MOBILE";
 
   const { data, loading, error, refetch } = useQuery<
     TopupProductsData,
     TopupProductsVars
   >(TOPUP_PRODUCTS, {
-    variables: { serviceItemKey, countryIso: countryIso2 ?? "" },
+    variables: { countryIso: countryIso2 ?? "" },
     skip: !countryIso2,
     fetchPolicy: "cache-first",
   });
 
-  const products: TopupProduct[] = data?.topupProducts.items ?? [];
+  const products: TopupProduct[] = (data?.topupListings.items ?? []).map((item) => ({
+    ...item,
+    displayName: item.product.displayName,
+    topupType: item.product.topupType,
+    validityPeriod: item.product.validityPeriod,
+    description: item.product.description,
+  }));
   const groups = useMemo(() => buildTypeGroups(products), [products]);
 
   return (

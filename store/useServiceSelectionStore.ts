@@ -100,7 +100,14 @@ export interface SelectionSnapshot {
   providerId?: string;
   productId?: string;
   accountRaw?: string;
+  /** E.164 full number (e.g. "+5352345678"). Use for display/validation. */
   accountNormalized?: string;
+  /**
+   * Phone number WITHOUT the country dial code (e.g. "52345678").
+   * This is what Ding expects as `destinationPhone`.
+   * Only populated when inputKind === PHONE and dialCode is known.
+   */
+  accountNational?: string;
   extras: Record<string, unknown>;
 }
 
@@ -485,6 +492,23 @@ export const useServiceSelectionStore = create<
   getSnapshot(): SelectionSnapshot {
     const { selectedService, country, provider, product, account, extras } =
       get();
+
+    // Strip dial code from E.164 to get the national number Ding expects.
+    // e.g. normalized="+5352345678", dialCode="+53" → nationalNumber="52345678"
+    let accountNational: string | undefined;
+    if (
+      selectedService.inputKind === ServiceInputKind.PHONE &&
+      account.normalized &&
+      country.dialCode
+    ) {
+      const dc = country.dialCode.startsWith("+")
+        ? country.dialCode
+        : `+${country.dialCode}`;
+      if (account.normalized.startsWith(dc)) {
+        accountNational = account.normalized.slice(dc.length);
+      }
+    }
+
     return {
       serviceType: selectedService.serviceType,
       inputKind: selectedService.inputKind,
@@ -494,6 +518,7 @@ export const useServiceSelectionStore = create<
       productId: product.id,
       accountRaw: account.value,
       accountNormalized: account.normalized,
+      accountNational,
       extras,
     };
   },

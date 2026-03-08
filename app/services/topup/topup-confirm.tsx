@@ -26,6 +26,7 @@ export default function TopupConfirmScreen() {
     providerCode,
     listingId,
     phoneE164,
+    phoneNational,
     countryIso,
   } = useLocalSearchParams<{
     displayName: string;
@@ -34,6 +35,7 @@ export default function TopupConfirmScreen() {
     providerCode: string;
     listingId: string;
     phoneE164: string;
+    phoneNational: string;
     countryIso: string;
   }>();
 
@@ -61,7 +63,7 @@ export default function TopupConfirmScreen() {
 
     const input = {
       productListingId: listingId!,
-      accountNumber: phoneE164!.replace(/^\+/, ""),
+      accountNumber: phoneNational!,
       paymentMethod: isWallet ? ("WALLET" as const) : ("CARD" as const),
       ...(cardId ? { cardId } : {}),
     };

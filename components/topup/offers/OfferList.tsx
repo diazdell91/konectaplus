@@ -42,7 +42,6 @@ interface Props {
 function sortProducts(items: TopupProduct[]): TopupProduct[] {
   return [...items].sort((a, b) => {
     if (b.isFeatured !== a.isFeatured) return b.isFeatured ? 1 : -1;
-    if (a.priority !== b.priority) return a.priority - b.priority;
     return a.sellPriceUsdCents - b.sellPriceUsdCents;
   });
 }
@@ -219,9 +218,9 @@ const OfferList = ({
                   </View>
                 )}
 
-                {!!item.receiveValue && !!item.receiveCurrency && (
+                {!!item.product?.sendValue && !!item.product?.sendCurrency && (
                   <Text style={styles.receiveValue}>
-                    Recibe: {item.receiveValue} {item.receiveCurrency}
+                    Recibe: {item.product.sendValue} {item.product.sendCurrency}
                   </Text>
                 )}
               </View>

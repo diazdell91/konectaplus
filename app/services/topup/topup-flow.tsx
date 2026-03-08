@@ -13,15 +13,12 @@ import { useServiceSelectionStore } from "@/store/useServiceSelectionStore";
 import { COLORS } from "@/theme/colors";
 import { COUNTRIES } from "@/utils/phoneCountry";
 import { useQuery } from "@apollo/client/react";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 export default function TopupFlowScreen() {
-  const { serviceItemKey: keyParam } = useLocalSearchParams<{
-    serviceItemKey?: string;
-  }>();
-  const { country, account, setProductId } = useServiceSelectionStore();
+  const { country, account, setProductId, getSnapshot } = useServiceSelectionStore();
 
   const countryIso2 = country.iso2;
   // Resolve calling code from store or fall back to COUNTRIES catalogue
@@ -36,19 +33,25 @@ export default function TopupFlowScreen() {
     if (raw.startsWith("+")) return raw;
     return callingCode ? `${callingCode}${raw}` : raw;
   }, [account.normalized, account.value, callingCode]);
-  const serviceItemKey = keyParam ?? "TOPUP";
 
   const { data, loading, error, refetch } = useQuery<
     TopupProductsData,
     TopupProductsVars
   >(TOPUP_PRODUCTS, {
-    variables: { serviceItemKey: "TOPUP", countryIso: countryIso2 ?? "" },
+    variables: { countryIso: countryIso2 ?? "" },
     skip: !countryIso2,
     fetchPolicy: "cache-first",
   });
 
   const products: TopupProduct[] = useMemo(
-    () => data?.topupProducts.items ?? [],
+    () =>
+      (data?.topupListings.items ?? []).map((item) => ({
+        ...item,
+        displayName: item.product.displayName,
+        topupType: item.product.topupType,
+        validityPeriod: item.product.validityPeriod,
+        description: item.product.description,
+      })),
     [data],
   );
 
@@ -116,6 +119,7 @@ export default function TopupFlowScreen() {
         }}
         onPayNow={() => {
           if (!selectedProduct) return;
+          const snap = getSnapshot();
           router.push({
             pathname: "/services/topup/topup-confirm",
             params: {
@@ -125,6 +129,7 @@ export default function TopupFlowScreen() {
               providerCode: "",
               listingId: selectedProduct.id,
               phoneE164: phoneNormalized,
+              phoneNational: snap.accountNational ?? "",
               countryIso: countryIso2 ?? "",
             },
           });

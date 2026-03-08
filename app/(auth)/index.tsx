@@ -1,11 +1,8 @@
 import { useAuth } from "@/context/AuthProvider";
 import { COLORS } from "@/theme/colors";
-import { FONT_FAMILIES } from "@/theme/typography";
 import { SPACING } from "@/theme/spacing";
-import {
-  COUNTRIES,
-  detectCountryFromPhone,
-} from "@/utils/phoneCountry";
+import { FONT_FAMILIES } from "@/theme/typography";
+import { COUNTRIES, detectCountryFromPhone } from "@/utils/phoneCountry";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -21,15 +18,14 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, {
   FadeInDown,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // ---------------------------------------------------------------------------
 // Country selector row
@@ -49,9 +45,8 @@ export default function PhoneScreen() {
   // Border animation on focus
   const borderAnim = useSharedValue(0);
   const borderStyle = useAnimatedStyle(() => ({
-    borderColor: borderAnim.value === 1
-      ? COLORS.primary.main
-      : COLORS.border.light,
+    borderColor:
+      borderAnim.value === 1 ? COLORS.primary.main : COLORS.border.light,
     borderWidth: borderAnim.value === 1 ? 2 : 1.5,
   }));
 
@@ -108,7 +103,10 @@ export default function PhoneScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.header}>
+          <Animated.View
+            entering={FadeInDown.delay(60).springify()}
+            style={styles.header}
+          >
             <View style={styles.logoCircle}>
               <Ionicons name="flash" size={28} color={COLORS.neutral.white} />
             </View>
@@ -116,26 +114,37 @@ export default function PhoneScreen() {
           </Animated.View>
 
           {/* Hero text */}
-          <Animated.View entering={FadeInDown.delay(140).springify()} style={styles.hero}>
+          <Animated.View
+            entering={FadeInDown.delay(140).springify()}
+            style={styles.hero}
+          >
             <Text style={styles.heroTitle}>Bienvenido</Text>
             <Text style={styles.heroSub}>
-              Ingresa tu teléfono para continuar.{"\n"}Te enviamos un código por SMS.
+              Ingresa tu teléfono para continuar.{"\n"}Te enviamos un código por
+              SMS.
             </Text>
           </Animated.View>
 
           {/* Phone input card */}
-          <Animated.View entering={FadeInDown.delay(220).springify()} style={styles.card}>
+          <Animated.View
+            entering={FadeInDown.delay(220).springify()}
+            style={styles.card}
+          >
             <Text style={styles.inputLabel}>Número de teléfono</Text>
 
             <Animated.View style={[styles.inputRow, borderStyle]}>
               {/* Country selector */}
               <Pressable
                 style={styles.countryBtn}
-                onPress={() => {/* TODO: country picker modal */}}
+                onPress={() => {
+                  /* TODO: country picker modal */
+                }}
                 hitSlop={8}
               >
                 <Text style={styles.flag}>{selectedCountry.flag ?? "🌍"}</Text>
-                <Text style={styles.dialCode}>{selectedCountry.callingCode}</Text>
+                <Text style={styles.dialCode}>
+                  {selectedCountry.callingCode}
+                </Text>
                 <Ionicons
                   name="chevron-down"
                   size={14}
@@ -156,8 +165,12 @@ export default function PhoneScreen() {
                 autoComplete="tel"
                 returnKeyType="done"
                 onSubmitEditing={handleContinue}
-                onFocus={() => { borderAnim.value = withTiming(1, { duration: 200 }); }}
-                onBlur={() => { borderAnim.value = withTiming(0, { duration: 200 }); }}
+                onFocus={() => {
+                  borderAnim.value = withTiming(1, { duration: 200 });
+                }}
+                onBlur={() => {
+                  borderAnim.value = withTiming(0, { duration: 200 });
+                }}
               />
 
               {isValid && (
@@ -173,14 +186,21 @@ export default function PhoneScreen() {
             </Animated.View>
 
             {error && (
-              <Animated.Text entering={FadeInDown.duration(200)} style={styles.errorText}>
+              <Animated.Text
+                entering={FadeInDown.duration(200)}
+                style={styles.errorText}
+              >
                 {error}
               </Animated.Text>
             )}
 
             {/* Info hint */}
             <View style={styles.hint}>
-              <Ionicons name="shield-checkmark-outline" size={14} color={COLORS.primary.main} />
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={14}
+                color={COLORS.primary.main}
+              />
               <Text style={styles.hintText}>
                 Solo tú recibirás este código. No lo compartas.
               </Text>
@@ -188,7 +208,10 @@ export default function PhoneScreen() {
           </Animated.View>
 
           {/* CTA */}
-          <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.ctaWrap}>
+          <Animated.View
+            entering={FadeInDown.delay(300).springify()}
+            style={styles.ctaWrap}
+          >
             <Pressable
               style={({ pressed }) => [
                 styles.cta,
@@ -205,15 +228,18 @@ export default function PhoneScreen() {
               ) : (
                 <>
                   <Text style={styles.ctaText}>Continuar</Text>
-                  <Ionicons name="arrow-forward" size={20} color={COLORS.neutral.white} />
+                  <Ionicons
+                    name="arrow-forward"
+                    size={20}
+                    color={COLORS.neutral.white}
+                  />
                 </>
               )}
             </Pressable>
 
             <Text style={styles.terms}>
               Al continuar aceptas nuestros{" "}
-              <Text style={styles.termsLink}>Términos de uso</Text>
-              {" "}y{" "}
+              <Text style={styles.termsLink}>Términos de uso</Text> y{" "}
               <Text style={styles.termsLink}>Política de privacidad</Text>.
             </Text>
           </Animated.View>
