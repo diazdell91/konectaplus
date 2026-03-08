@@ -1,4 +1,4 @@
-import { TopupProductListing } from "@/graphql/adminTopupProductListings";
+import { TopupProduct } from "@/graphql/adminTopupProducts";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { formatUsd } from "@/utils/currency";
@@ -7,7 +7,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface TopupFooterProps {
-  selectedListing: TopupProductListing | null;
+  selectedListing: TopupProduct | null;
   canProceed: boolean;
   onAddToCart: () => void;
   onPayNow: () => void;

@@ -2,7 +2,7 @@
 import { gql } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
 import Storage from "expo-sqlite/kv-store";
-import React, { createContext, useCallback, useMemo, useState } from "react";
+import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
 
 const STORAGE_KEY = "@auth_state";
 
@@ -102,6 +102,7 @@ type AuthContextType = {
   // state
   auth: AuthState;
   isAuthenticated: boolean;
+  isHydrated: boolean;
 
   // getters útiles (por si quieres usarlos en links)
   getAccessToken: () => string | null;
@@ -129,6 +130,7 @@ type AuthContextType = {
 export const AuthContext = createContext<AuthContextType>({
   auth: DEFAULT_AUTH,
   isAuthenticated: false,
+  isHydrated: false,
   getAccessToken: () => null,
   getRefreshToken: () => null,
   setAuth: async () => {},
@@ -176,8 +178,15 @@ function persistAuthSync(next: AuthState) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const client = useApolloClient();
 
-  // Igual que AppSettings: carga síncrona, sin loading state
+  // Carga síncrona desde storage
   const [auth, setAuthState] = useState<AuthState>(loadAuthSync);
+  // isHydrated se pone true tras el primer render, garantizando que
+  // el token ya está en memoria antes de que Apollo lance queries.
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const isAuthenticated =
     !!auth.accessToken && !!auth.refreshToken && !!auth.user;
@@ -317,6 +326,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       auth,
       isAuthenticated,
+      isHydrated,
       getAccessToken,
       getRefreshToken,
       setAuth,
@@ -330,6 +340,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [
       auth,
       isAuthenticated,
+      isHydrated,
       getAccessToken,
       getRefreshToken,
       setAuth,

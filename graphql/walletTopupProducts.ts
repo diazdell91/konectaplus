@@ -16,26 +16,31 @@ export interface WalletTopupProductsData {
   walletTopupProducts: WalletTopupProduct[];
 }
 
-export interface WalletTopupIntent {
+export interface WalletTopupWithSavedCardResult {
   paymentAttemptId: string;
-  clientSecret: string;
+  succeeded: boolean;
+  requiresAction: boolean;
+  clientSecret: string | null;
   amountCents: number;
   currency: string;
 }
 
-export interface WalletCreateTopupIntentData {
-  walletCreateTopupIntentUSD: WalletTopupIntent;
+export interface WalletTopupWithSavedCardData {
+  walletTopupWithSavedCardUSD: WalletTopupWithSavedCardResult;
 }
 
-export interface WalletCreateTopupIntentVars {
+export interface WalletTopupWithSavedCardVars {
   productId: string;
-  note?: string;
+  cardId: string;
+  note?: string | null;
 }
 
-export const WALLET_CREATE_TOPUP_INTENT = gql`
-  mutation WalletCreateTopupIntentUSD($productId: String!, $note: String) {
-    walletCreateTopupIntentUSD(productId: $productId, note: $note) {
+export const WALLET_TOPUP_WITH_SAVED_CARD = gql`
+  mutation WalletTopupWithSavedCardUSD($productId: String!, $cardId: ID!, $note: String) {
+    walletTopupWithSavedCardUSD(productId: $productId, cardId: $cardId, note: $note) {
       paymentAttemptId
+      succeeded
+      requiresAction
       clientSecret
       amountCents
       currency

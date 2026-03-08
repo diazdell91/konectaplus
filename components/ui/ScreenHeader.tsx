@@ -2,11 +2,7 @@ import { COLORS } from "@/theme";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
-interface ScreenHeaderProps {
-  subtitle: string;
-}
-
-export default function ScreenHeader({ subtitle }: ScreenHeaderProps) {
+export default function ScreenHeader() {
   return (
     <View style={styles.headerSection}>
       <View style={styles.headerIconContainer}>

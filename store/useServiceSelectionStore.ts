@@ -7,12 +7,12 @@
  * Runtime only — no persistence.
  */
 
-import { create } from "zustand";
 import {
   COUNTRIES,
   detectCountryFromPhone,
   isValidE164,
 } from "@/utils/phoneCountry";
+import { create } from "zustand";
 
 // ---------------------------------------------------------------------------
 // Enums & Types
@@ -25,17 +25,17 @@ export enum ServiceInputKind {
 }
 
 export enum ServiceType {
-  RECHARGE_MOBILE = "RECHARGE_MOBILE",
-  RECHARGE_NAUTA = "RECHARGE_NAUTA",
+  TOPUP_MOBILE = "TOPUP_MOBILE",
+  TOPUP_NAUTA = "TOPUP_NAUTA",
   // Extend here for future services:
   // GIFT_CARD = "GIFT_CARD",
-  // WALLET_TOPUP = "WALLET_TOPUP",
+  WALLET_TOPUP = "WALLET_TOPUP",
 }
 
 /** Services that require a product.id to be submitted. */
 const CATALOG_BASED_SERVICES: ServiceType[] = [
-  ServiceType.RECHARGE_MOBILE,
-  ServiceType.RECHARGE_NAUTA,
+  ServiceType.TOPUP_MOBILE,
+  ServiceType.TOPUP_NAUTA,
 ];
 
 export type SelectionSource =
@@ -72,7 +72,7 @@ interface ProductState {
 
 interface AccountState {
   kind: AccountKind;
-  value?: string;      // raw user-visible input
+  value?: string; // raw user-visible input
   normalized?: string; // E.164 if PHONE, lowercase email if EMAIL
 }
 
@@ -134,14 +134,12 @@ export function normalizePhoneE164(value: string): string | undefined {
 export function parseDialCodeFromE164(e164: string): string | undefined {
   if (!e164.startsWith("+")) return undefined;
   const sorted = [...COUNTRIES].sort(
-    (a, b) => b.callingCode.length - a.callingCode.length
+    (a, b) => b.callingCode.length - a.callingCode.length,
   );
   for (const c of sorted) {
     if (e164.startsWith(c.callingCode)) {
       // Normalize: strip the dash variants (e.g. "+1-809" -> "+1809")
-      return c.callingCode.replace(/[^\d+]/g, (m) =>
-        m === "+" ? "+" : ""
-      );
+      return c.callingCode.replace(/[^\d+]/g, (m) => (m === "+" ? "+" : ""));
     }
   }
   return undefined;
@@ -155,7 +153,7 @@ function accountKindFromInputKind(inputKind: ServiceInputKind): AccountKind {
 
 function normalizeAccount(
   value: string,
-  inputKind: ServiceInputKind
+  inputKind: ServiceInputKind,
 ): string | undefined {
   if (inputKind === ServiceInputKind.PHONE) return normalizePhoneE164(value);
   if (inputKind === ServiceInputKind.EMAIL) return normalizeEmail(value);
@@ -201,10 +199,7 @@ interface ServiceSelectionActions {
 
   // Country
   setCountryIso2(iso2: string | undefined, source?: SelectionSource): void;
-  setCountryFromDialCode(
-    dialCode: string,
-    source?: SelectionSource
-  ): void;
+  setCountryFromDialCode(dialCode: string, source?: SelectionSource): void;
 
   // Account
   setAccountRaw(value: string, source?: SelectionSource): void;
@@ -261,10 +256,8 @@ export const useServiceSelectionStore = create<
   startSelection({ serviceType, inputKind }) {
     const state = get();
     const newKind = inputKind ?? state.selectedService.inputKind;
-    const kindChanged =
-      newKind !== state.selectedService.inputKind;
-    const typeChanged =
-      serviceType !== state.selectedService.serviceType;
+    const kindChanged = newKind !== state.selectedService.inputKind;
+    const typeChanged = serviceType !== state.selectedService.serviceType;
 
     set((s) => ({
       selectedService: { serviceType, inputKind: newKind },
@@ -346,10 +339,10 @@ export const useServiceSelectionStore = create<
   setCountryFromDialCode(dialCode, source = "unknown") {
     // Normalize dial code: ensure it starts with "+"
     const normalized = dialCode.startsWith("+") ? dialCode : `+${dialCode}`;
-    const country = COUNTRIES.find((c) =>
-      c.callingCode.replace(/[^\d+]/g, (m) =>
-        m === "+" ? "+" : ""
-      ) === normalized || c.callingCode === dialCode
+    const country = COUNTRIES.find(
+      (c) =>
+        c.callingCode.replace(/[^\d+]/g, (m) => (m === "+" ? "+" : "")) ===
+          normalized || c.callingCode === dialCode,
     );
 
     set((s) => {
@@ -388,10 +381,16 @@ export const useServiceSelectionStore = create<
     const store = get();
     store.setInputKind(ServiceInputKind.PHONE);
 
-    // Strip all non-digit characters — the number already includes the country code
-    const digitsOnly = phoneRaw.replace(/\D/g, "");
+    // Preserve E.164 format so normalizePhoneE164 can process it correctly
+    const cleaned = phoneRaw.replace(/[\s\-().]/g, "");
+    const e164 = cleaned.startsWith("+") ? cleaned : `+${cleaned.replace(/\D/g, "")}`;
 
-    store.setAccountRaw(digitsOnly, "contact");
+    store.setAccountRaw(e164, "contact");
+
+    const detected = detectCountryFromPhone(e164);
+    if (detected) {
+      store.setCountryFromDialCode(detected.callingCode, "contact");
+    }
     set({ source: "contact" });
   },
 
@@ -466,7 +465,8 @@ export const useServiceSelectionStore = create<
       if (!account.normalized || !isValidE164(account.normalized)) return false;
     } else if (inputKind === ServiceInputKind.EMAIL) {
       if (account.kind !== "EMAIL") return false;
-      if (!account.normalized || !isValidEmail(account.normalized)) return false;
+      if (!account.normalized || !isValidEmail(account.normalized))
+        return false;
     }
     // ServiceInputKind.NONE: no account validation needed
 
@@ -507,12 +507,13 @@ export const useServiceSelectionStore = create<
       if (!account.normalized || !isValidE164(account.normalized)) {
         return {
           ok: false,
-          errorMessage: "Se requiere un número de teléfono válido en formato internacional.",
+          errorMessage:
+            "Se requiere un número de teléfono válido en formato internacional.",
         };
       }
       if (!country.iso2) {
         warnings.push(
-          "No se pudo determinar el país a partir del número. Algunas funciones podrían no estar disponibles."
+          "No se pudo determinar el país a partir del número. Algunas funciones podrían no estar disponibles.",
         );
       }
     } else if (inputKind === ServiceInputKind.EMAIL) {

@@ -2,7 +2,9 @@ import PaymentMethodPicker from "@/components/payment/PaymentMethodPicker";
 import SummaryRow from "@/components/payment/SummaryRow";
 import { Button, Text } from "@/components/ui";
 import {
-  WALLET_CREATE_TOPUP_INTENT, // esta debe apuntar a walletCreateTopupIntentUSD
+  WALLET_TOPUP_WITH_SAVED_CARD,
+  WalletTopupWithSavedCardData,
+  WalletTopupWithSavedCardVars,
 } from "@/graphql/walletTopupProducts";
 import { SelectedPaymentMethod, usePaymentStore } from "@/store/usePaymentStore";
 import { COLORS } from "@/theme/colors";
@@ -15,22 +17,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { Text as RNText, StyleSheet, View } from "react-native";
 import { showToast } from "@/utils/toast";
-
-type WalletTopupIntentResult = {
-  paymentAttemptId: string;
-  clientSecret: string;
-  amountCents: number;
-  currency: string;
-};
-
-type WalletCreateTopupIntentData = {
-  walletCreateTopupIntentUSD: WalletTopupIntentResult;
-};
-
-type WalletCreateTopupIntentVars = {
-  productId: string;
-  note?: string | null;
-};
 
 export default function WalletTopupConfirmScreen() {
   const { productId, amountCents, priceCents, feeCents } =
@@ -51,30 +37,22 @@ export default function WalletTopupConfirmScreen() {
   const clearStoredMethod = usePaymentStore((s) => s.clearSelectedMethod);
   const [isConfirming, setIsConfirming] = useState(false);
 
-  // Limpia cualquier selección previa del store al entrar a esta pantalla
   useEffect(() => {
     clearStoredMethod();
   }, []);
 
-  const [attempt, setAttempt] = useState<{
-    paymentAttemptId: string;
-    clientSecret: string;
-  } | null>(null);
-
-  const [createIntent, { loading: creatingIntent }] = useMutation<
-    WalletCreateTopupIntentData,
-    WalletCreateTopupIntentVars
-  >(WALLET_CREATE_TOPUP_INTENT, {
+  const [walletTopup, { loading: mutationLoading }] = useMutation<
+    WalletTopupWithSavedCardData,
+    WalletTopupWithSavedCardVars
+  >(WALLET_TOPUP_WITH_SAVED_CARD, {
     fetchPolicy: "no-cache",
   });
 
-  const loading = creatingIntent || isConfirming;
+  const loading = mutationLoading || isConfirming;
   const selectedCard = selectedMethod?.type === "CARD" ? selectedMethod.card : null;
   const canConfirm = !!selectedCard && !loading;
 
   const handleConfirm = async () => {
-    console.log("[WalletTopup] handleConfirm — selectedCard:", selectedCard?.id, "| loading:", loading);
-
     if (!selectedCard) {
       showToast.error("Selecciona una tarjeta para continuar.");
       return;
@@ -84,71 +62,101 @@ export default function WalletTopupConfirmScreen() {
     try {
       setIsConfirming(true);
 
-      // 1) Crear intent en backend
-      console.log("[WalletTopup] step 1 — createIntent | productId:", productId);
-      const { data } = await createIntent({
-        variables: { productId },
+      console.log("[WalletTopup] ▶ mutation vars:", {
+        productId,
+        cardId: selectedCard.id,
+        stripePaymentMethodId: selectedCard.stripePaymentMethodId,
+        cardBrand: selectedCard.brand,
+        cardLast4: selectedCard.last4,
       });
 
-      const r = data?.walletCreateTopupIntentUSD;
-      console.log("[WalletTopup] step 1 response:", JSON.stringify(r, null, 2));
+      const { data, errors } = await walletTopup({
+        variables: { productId: productId!, cardId: selectedCard.id },
+      });
 
-      if (!r?.clientSecret || !r?.paymentAttemptId) {
-        throw new Error("No se recibió clientSecret/paymentAttemptId.");
+      console.log("[WalletTopup] ◀ raw response — data:", JSON.stringify(data, null, 2));
+      if (errors?.length) {
+        console.error("[WalletTopup] ◀ graphql errors:", JSON.stringify(errors, null, 2));
       }
 
-      setAttempt({
+      const r = data?.walletTopupWithSavedCardUSD;
+
+      if (!r) throw new Error("Sin respuesta del servidor.");
+
+      console.log("[WalletTopup] resultado:", {
         paymentAttemptId: r.paymentAttemptId,
-        clientSecret: r.clientSecret,
+        succeeded: r.succeeded,
+        requiresAction: r.requiresAction,
+        hasClientSecret: !!r.clientSecret,
+        amountCents: r.amountCents,
+        currency: r.currency,
       });
 
-      // 2) Confirmar en Stripe con PaymentMethod guardado
-      console.log("[WalletTopup] step 2 — confirmPayment | paymentMethodId:", selectedCard.stripePaymentMethodId);
-      const res = await confirmPayment(r.clientSecret, {
-        paymentMethodType: "Card",
-        paymentMethodData: {
-          paymentMethodId: selectedCard.stripePaymentMethodId,
-        },
-      });
-
-      console.log("[WalletTopup] step 2 response — error:", res.error, "| status:", res.paymentIntent?.status);
-
-      if (res.error) {
-        console.warn("[WalletTopup] Stripe error:", res.error);
-        showToast.error(res.error.message ?? "No se pudo confirmar el pago.");
-        return;
-      }
-
-      const status = res.paymentIntent?.status;
-      console.log("[WalletTopup] paymentIntent status:", status);
-
-      if (status === PaymentIntent.Status.Succeeded) {
-        console.log("[WalletTopup] ✅ Succeeded");
+      // Caso 1: off-session exitoso sin acción adicional
+      if (r.succeeded && !r.requiresAction) {
+        console.log("[WalletTopup] ✅ Caso 1 — off-session succeeded");
         showToast.success("Recarga completada");
         router.replace("/(tabs)/(home)");
         return;
       }
 
-      if (status === PaymentIntent.Status.Processing) {
-        console.log("[WalletTopup] ⏳ Processing");
-        showToast.info("Pago en procesamiento. Puede tardar unos segundos.");
+      // Caso 2: 3DS requerido
+      if (r.requiresAction) {
+        if (!r.clientSecret) {
+          throw new Error("Se requiere acción pero falta clientSecret.");
+        }
+
+        console.log("[WalletTopup] ⚠️ Caso 2 — 3DS requerido | confirmPayment con paymentMethodId:", selectedCard.stripePaymentMethodId);
+        const { error, paymentIntent } = await confirmPayment(r.clientSecret, {
+          paymentMethodType: "Card",
+          paymentMethodData: { paymentMethodId: selectedCard.stripePaymentMethodId },
+        });
+
+        console.log("[WalletTopup] confirmPayment result — error:", JSON.stringify(error), "| paymentIntent:", JSON.stringify(paymentIntent, null, 2));
+
+        if (error) {
+          console.warn("[WalletTopup] ❌ Stripe error:", error.code, error.message);
+          showToast.error(error.message ?? "No se pudo confirmar el pago.");
+          return;
+        }
+
+        const status = paymentIntent?.status;
+        console.log("[WalletTopup] paymentIntent.status:", status);
+
+        if (status === PaymentIntent.Status.Succeeded) {
+          console.log("[WalletTopup] ✅ Stripe Succeeded");
+          showToast.success("Recarga completada");
+          router.replace("/(tabs)/(home)");
+          return;
+        }
+
+        if (status === PaymentIntent.Status.Processing) {
+          console.log("[WalletTopup] ⏳ Stripe Processing");
+          showToast.info("Pago en procesamiento. Puede tardar unos segundos.");
+          router.replace("/(tabs)/(home)");
+          return;
+        }
+
+        if (status === PaymentIntent.Status.RequiresAction) {
+          console.log("[WalletTopup] 🔐 Stripe RequiresAction");
+          showToast.info("Se requiere acción adicional para completar el pago.");
+          return;
+        }
+
+        console.warn("[WalletTopup] ❓ estado inesperado:", status);
+        showToast.info(`Estado del pago: ${status ?? "Unknown"}`);
         return;
       }
 
-      if (status === PaymentIntent.Status.RequiresAction) {
-        console.log("[WalletTopup] ⚠️ RequiresAction");
-        showToast.info("Se requiere acción adicional para completar el pago.");
-        return;
-      }
-
-      console.warn("[WalletTopup] Estado inesperado:", status);
-      showToast.info(`Estado del pago: ${status ?? "Unknown"}`);
+      // Caso 3: no succeeded y no requiresAction — estado inesperado
+      console.warn("[WalletTopup] ❓ Caso 3 — ni succeeded ni requiresAction");
+      throw new Error("Respuesta inesperada del servidor.");
     } catch (e: any) {
-      console.error("[WalletTopup] catch error:", e);
+      console.error("[WalletTopup] 💥 catch error:", e?.message ?? e);
       showToast.error(e?.message ?? "Ocurrió un error procesando el pago.");
     } finally {
       setIsConfirming(false);
-      console.log("[WalletTopup] handleConfirm — finally");
+      console.log("[WalletTopup] — finally");
     }
   };
 
@@ -191,19 +199,6 @@ export default function WalletTopupConfirmScreen() {
             hideWallet
           />
 
-          {/* UI opcional */}
-          {attempt?.paymentAttemptId ? (
-            <View style={styles.infoRow}>
-              <Ionicons
-                name="checkmark-circle"
-                size={18}
-                color={COLORS.primary.main}
-              />
-              <Text body color={COLORS.text.secondary}>
-                Intent creado: {attempt.paymentAttemptId}
-              </Text>
-            </View>
-          ) : null}
         </View>
 
         <View style={styles.footer}>
@@ -265,6 +260,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 4,
   },
-  infoRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   footer: { gap: 10, paddingTop: 16 },
 });

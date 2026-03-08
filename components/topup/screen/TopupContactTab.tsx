@@ -21,7 +21,7 @@ const TopupContactTab = () => {
 
   useEffect(() => {
     startSelection({
-      serviceType: ServiceType.RECHARGE_MOBILE,
+      serviceType: ServiceType.TOPUP_MOBILE,
       inputKind: ServiceInputKind.PHONE,
     });
   }, [startSelection]);
@@ -33,7 +33,10 @@ const TopupContactTab = () => {
   const handleSelectContact = (phone: string) => {
     hydrateFromContact(phone, dialCode);
     setCountryIso2(country.iso);
-    router.push("/services/topup/topup-flow");
+    router.push({
+      pathname: "/services/topup/topup-flow",
+      params: { serviceItemKey: "TOPUP_MOBILE" },
+    });
   };
 
   return (

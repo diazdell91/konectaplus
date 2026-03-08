@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const Index = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ScreenHeader subtitle="Recarga a los tuyos" />
+      <ScreenHeader />
       <TopupScreen />
     </SafeAreaView>
   );

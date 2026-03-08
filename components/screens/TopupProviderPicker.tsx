@@ -1,15 +1,14 @@
 import {
-  ADMIN_TOPUP_PRODUCT_LISTINGS,
-  AdminTopupProductListingsData,
-  AdminTopupProductListingsVars,
-  TopupProductListing,
+  TOPUP_PRODUCTS,
+  TopupProduct,
+  TopupProductsData,
+  TopupProductsVars,
 } from "@/graphql/adminTopupProductListings";
 import { useServiceSelectionStore } from "@/store/useServiceSelectionStore";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { useQuery } from "@apollo/client/react";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useMemo } from "react";
 import {
@@ -22,54 +21,44 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface ProviderMeta {
-  providerCode: string;
-  name: string;
-  logoUrl: string | null;
+interface TypeGroup {
+  topupType: string;
   count: number;
 }
 
-function buildProviders(listings: TopupProductListing[]): ProviderMeta[] {
-  const map = new Map<string, ProviderMeta>();
-  for (const item of listings) {
-    const existing = map.get(item.providerCode);
-    if (existing) {
-      existing.count += 1;
-      if (!existing.logoUrl && item.logoUrl) existing.logoUrl = item.logoUrl;
-    } else {
-      map.set(item.providerCode, {
-        providerCode: item.providerCode,
-        name: item.serviceProvider ?? item.providerCode,
-        logoUrl: item.logoUrl ?? null,
-        count: 1,
-      });
-    }
+function buildTypeGroups(products: TopupProduct[]): TypeGroup[] {
+  const map = new Map<string, number>();
+  for (const item of products) {
+    map.set(item.topupType, (map.get(item.topupType) ?? 0) + 1);
   }
-  return Array.from(map.values());
+  return Array.from(map.entries()).map(([topupType, count]) => ({
+    topupType,
+    count,
+  }));
 }
 
+const TYPE_LABELS: Record<string, string> = {
+  VOUCHER: "Recargas",
+  BUNDLE: "Paquetes",
+  DATA: "Datos",
+};
+
 export default function TopupProviderPicker() {
-  const { country, setProviderId } = useServiceSelectionStore();
+  const { country, selectedService } = useServiceSelectionStore();
   const countryIso2 = country.iso2;
+  const serviceItemKey = selectedService.serviceType ?? "RECHARGE_MOBILE";
 
   const { data, loading, error, refetch } = useQuery<
-    AdminTopupProductListingsData,
-    AdminTopupProductListingsVars
-  >(ADMIN_TOPUP_PRODUCT_LISTINGS, {
-    variables: { status: "ACTIVE", countryIso: countryIso2, pageSize: 500 },
+    TopupProductsData,
+    TopupProductsVars
+  >(TOPUP_PRODUCTS, {
+    variables: { serviceItemKey, countryIso: countryIso2 ?? "" },
     skip: !countryIso2,
     fetchPolicy: "cache-first",
   });
 
-  const listings: TopupProductListing[] =
-    data?.adminRechargeProductListings.items ?? [];
-
-  const providers = useMemo(() => buildProviders(listings), [listings]);
-
-  const handleSelect = (providerCode: string) => {
-    setProviderId(providerCode, "provider");
-    router.back();
-  };
+  const products: TopupProduct[] = data?.topupProducts.items ?? [];
+  const groups = useMemo(() => buildTypeGroups(products), [products]);
 
   return (
     <View style={styles.root}>
@@ -78,9 +67,9 @@ export default function TopupProviderPicker() {
       <SafeAreaView edges={[]} style={styles.headerWrap}>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Seleccionar proveedor</Text>
+            <Text style={styles.title}>Tipos de recarga</Text>
             <Text style={styles.subtitle}>
-              Elige el operador para esta recarga
+              Elige el tipo de producto disponible
             </Text>
           </View>
           <Pressable
@@ -93,7 +82,7 @@ export default function TopupProviderPicker() {
         </View>
       </SafeAreaView>
 
-      {loading && providers.length === 0 ? (
+      {loading && groups.length === 0 ? (
         <View style={styles.centered}>
           <ActivityIndicator color={COLORS.primary.main} />
         </View>
@@ -104,12 +93,12 @@ export default function TopupProviderPicker() {
             size={32}
             color={COLORS.semantic.error}
           />
-          <Text style={styles.errorText}>Error al cargar proveedores</Text>
+          <Text style={styles.errorText}>Error al cargar productos</Text>
           <Pressable onPress={() => refetch()} style={styles.retryBtn}>
             <Text style={styles.retryText}>Reintentar</Text>
           </Pressable>
         </View>
-      ) : providers.length === 0 ? (
+      ) : groups.length === 0 ? (
         <View style={styles.centered}>
           <Ionicons
             name="wifi-outline"
@@ -117,13 +106,13 @@ export default function TopupProviderPicker() {
             color={COLORS.neutral.gray300}
           />
           <Text style={styles.emptyText}>
-            No hay proveedores disponibles para este país
+            No hay productos disponibles para este país
           </Text>
         </View>
       ) : (
         <FlatList
-          data={providers}
-          keyExtractor={(item) => item.providerCode}
+          data={groups}
+          keyExtractor={(item) => item.topupType}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
@@ -132,24 +121,13 @@ export default function TopupProviderPicker() {
                 styles.row,
                 pressed && styles.rowPressed,
               ]}
-              onPress={() => handleSelect(item.providerCode)}
+              onPress={() => router.back()}
             >
-              {item.logoUrl ? (
-                <Image
-                  source={{ uri: item.logoUrl }}
-                  style={styles.logo}
-                  contentFit="contain"
-                />
-              ) : (
-                <View style={styles.logoPlaceholder}>
-                  <Text style={styles.logoInitial}>
-                    {item.name.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
               <View style={styles.rowText}>
-                <Text style={styles.providerName}>{item.name}</Text>
-                <Text style={styles.providerCount}>
+                <Text style={styles.typeName}>
+                  {TYPE_LABELS[item.topupType] ?? item.topupType}
+                </Text>
+                <Text style={styles.typeCount}>
                   {item.count} producto{item.count !== 1 ? "s" : ""}
                 </Text>
               </View>
@@ -237,36 +215,17 @@ const styles = StyleSheet.create({
   rowPressed: {
     backgroundColor: COLORS.background.secondary,
   },
-  logo: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-  },
-  logoPlaceholder: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: COLORS.neutral.gray100,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoInitial: {
-    fontFamily: FONT_FAMILIES.bold,
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.primary.main,
-  },
   rowText: {
     flex: 1,
     gap: 2,
   },
-  providerName: {
+  typeName: {
     fontFamily: FONT_FAMILIES.semiBold,
     fontSize: 15,
     fontWeight: "600",
     color: COLORS.text.primary,
   },
-  providerCount: {
+  typeCount: {
     fontFamily: FONT_FAMILIES.regular,
     fontSize: 12,
     color: COLORS.text.secondary,

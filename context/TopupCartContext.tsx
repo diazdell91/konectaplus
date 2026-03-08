@@ -1,5 +1,5 @@
 /**
- * TopupCartContext — simple in-memory mock cart for the recharge flow.
+ * TopupCartContext — simple in-memory mock cart for the topup flow.
  *
  * Holds the items the user wants to purchase.  In a real app this would be
  * persisted (SQLite / remote) and tied to the backend checkout flow.

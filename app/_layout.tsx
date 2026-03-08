@@ -1,4 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
 import {
   configureReanimatedLogger,
   ReanimatedLogLevel,
@@ -30,8 +32,40 @@ configureReanimatedLogger({
   strict: false, // Disable strict mode to suppress false-positive warnings
 });
 
+function AppSplash() {
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: COLORS.background.primary,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 16,
+      }}
+    >
+      <View
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: 20,
+          backgroundColor: COLORS.primary.main,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name="flash" size={32} color="#fff" />
+      </View>
+      <ActivityIndicator color={COLORS.primary.main} size="small" />
+    </View>
+  );
+}
+
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isHydrated } = useAuth();
+
+  if (!isHydrated) {
+    return <AppSplash />;
+  }
 
   return (
     <Stack

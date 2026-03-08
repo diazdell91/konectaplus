@@ -1,7 +1,7 @@
 /**
  * OfferList
  *
- * FlatList of TopupProductListing cards for a specific provider + type.
+ * FlatList of TopupProduct cards filtered by topupType.
  *
  * Sort order:
  *   1. isFeatured DESC
@@ -11,34 +11,35 @@
 
 import {
   TopupListingType,
-  TopupProductListing,
+  TopupProduct,
 } from "@/graphql/adminTopupProductListings";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { discountPercent, formatUsd } from "@/utils/currency";
+import { ApolloError } from "@apollo/client";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
 interface Props {
-  listings: TopupProductListing[];
-  providerCode: string | null;
-  rechargeType: TopupListingType;
-  selectedListingId: string | null;
-  onSelectListing: (listing: TopupProductListing) => void;
+  products: TopupProduct[];
+  topupType: TopupListingType;
+  selectedProductId: string | null;
+  onSelectProduct: (product: TopupProduct) => void;
+  loading?: boolean;
+  error?: ApolloError;
+  onRetry?: () => void;
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function sortListings(
-  items: TopupProductListing[],
-): TopupProductListing[] {
+function sortProducts(items: TopupProduct[]): TopupProduct[] {
   return [...items].sort((a, b) => {
     if (b.isFeatured !== a.isFeatured) return b.isFeatured ? 1 : -1;
     if (a.priority !== b.priority) return a.priority - b.priority;
@@ -50,11 +51,27 @@ function sortListings(
 // Sub-components
 // ---------------------------------------------------------------------------
 
+const BADGE_COLORS: Record<string, string> = {
+  NEW: COLORS.primary.main,
+  OFFER: COLORS.secondary.main,
+  HOT: "#EF4444",
+  POPULAR: "#8B5CF6",
+};
+
+const BADGE_LABELS: Record<string, string> = {
+  NEW: "Nuevo",
+  OFFER: "Oferta",
+  HOT: "Hot",
+  POPULAR: "Popular",
+};
+
 const BadgeChip = ({ label }: { label: string }) => {
   if (!label || label === "NONE") return null;
+  const bg = BADGE_COLORS[label] ?? COLORS.neutral.gray400;
+  const text = BADGE_LABELS[label] ?? label;
   return (
-    <View style={badgeStyles.chip}>
-      <Text style={badgeStyles.text}>{label}</Text>
+    <View style={[badgeStyles.chip, { backgroundColor: bg }]}>
+      <Text style={badgeStyles.text}>{text}</Text>
     </View>
   );
 };
@@ -62,7 +79,6 @@ const BadgeChip = ({ label }: { label: string }) => {
 const badgeStyles = StyleSheet.create({
   chip: {
     alignSelf: "flex-start",
-    backgroundColor: COLORS.secondary.main,
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -79,7 +95,7 @@ const badgeStyles = StyleSheet.create({
 });
 
 // ---------------------------------------------------------------------------
-// Empty / skeleton placeholders
+// Empty / error states
 // ---------------------------------------------------------------------------
 
 const EmptyState = () => (
@@ -87,7 +103,7 @@ const EmptyState = () => (
     <Ionicons name="sad-outline" size={40} color={COLORS.neutral.gray300} />
     <Text style={styles.emptyTitle}>Sin ofertas disponibles</Text>
     <Text style={styles.emptySubtitle}>
-      No hay productos para este país / proveedor / tipo.
+      No hay productos para este país / tipo.
     </Text>
   </View>
 );
@@ -97,34 +113,37 @@ const EmptyState = () => (
 // ---------------------------------------------------------------------------
 
 const OfferList = ({
-  listings,
-  providerCode,
-  rechargeType,
-  selectedListingId,
-  onSelectListing,
+  products,
+  topupType,
+  selectedProductId,
+  onSelectProduct,
+  loading,
+  error,
+  onRetry,
 }: Props) => {
-  const filtered = useMemo(() => {
-    if (!providerCode) return [];
-    return sortListings(
-      listings.filter(
-        (l) =>
-          l.providerCode === providerCode && l.rechargeType === rechargeType,
-      ),
-    );
-  }, [listings, providerCode, rechargeType]);
+  const filtered = useMemo(
+    () => sortProducts(products.filter((p) => p.topupType === topupType)),
+    [products, topupType],
+  );
 
-  if (!providerCode) {
+  if (loading && products.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons
-          name="hand-left-outline"
-          size={38}
-          color={COLORS.neutral.gray300}
-        />
-        <Text style={styles.emptyTitle}>Selecciona un proveedor</Text>
-        <Text style={styles.emptySubtitle}>
-          Elige un proveedor arriba para ver las ofertas disponibles.
-        </Text>
+        <ActivityIndicator color={COLORS.primary.main} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="alert-circle-outline" size={36} color={COLORS.semantic.error} />
+        <Text style={styles.emptyTitle}>Error al cargar</Text>
+        {onRetry && (
+          <Pressable style={styles.retryBtn} onPress={onRetry}>
+            <Text style={styles.retryText}>Reintentar</Text>
+          </Pressable>
+        )}
       </View>
     );
   }
@@ -140,7 +159,7 @@ const OfferList = ({
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
       renderItem={({ item }) => {
-        const isSelected = item.id === selectedListingId;
+        const isSelected = item.id === selectedProductId;
         const hasDiscount =
           !!item.compareAtPriceUsdCents &&
           item.compareAtPriceUsdCents > item.sellPriceUsdCents;
@@ -158,7 +177,7 @@ const OfferList = ({
               isSelected && styles.cardSelected,
               pressed && styles.cardPressed,
             ]}
-            onPress={() => onSelectListing(item)}
+            onPress={() => onSelectProduct(item)}
             accessibilityRole="button"
             accessibilityLabel={item.displayName}
             accessibilityState={{ selected: isSelected }}
@@ -371,7 +390,7 @@ const styles = StyleSheet.create({
     right: 12,
   },
 
-  // Empty
+  // Empty / error
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
@@ -392,5 +411,18 @@ const styles = StyleSheet.create({
     color: COLORS.text.secondary,
     textAlign: "center",
     lineHeight: 19,
+  },
+  retryBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary.main,
+    marginTop: 4,
+  },
+  retryText: {
+    fontFamily: FONT_FAMILIES.semiBold,
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.neutral.white,
   },
 });

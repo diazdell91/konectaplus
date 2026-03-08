@@ -1,5 +1,5 @@
 /**
- * Phone / Country utilities for the Recharge flow.
+ * Phone / Country utilities for the Topup flow.
  *
  * Responsibilities:
  *  - Map calling codes (+53, +52 …) → ISO country code

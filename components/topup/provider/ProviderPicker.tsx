@@ -6,7 +6,7 @@
  * The selected provider gets a green border + check badge.
  */
 
-import { TopupProductListing } from "@/graphql/adminTopupProductListings";
+// ProviderPicker — not used in active flow (topupProducts query has no providerCode field)
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,8 +25,15 @@ export interface ProviderMeta {
   count: number;
 }
 
+interface ProviderPickerItem {
+  id: string;
+  providerCode: string;
+  serviceProvider: string | null;
+  logoUrl: string | null;
+}
+
 interface Props {
-  listings: TopupProductListing[];
+  listings: ProviderPickerItem[];
   selectedProviderCode: string | null;
   onSelectProvider: (providerCode: string) => void;
 }
@@ -35,7 +42,7 @@ interface Props {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function buildProviders(listings: TopupProductListing[]): ProviderMeta[] {
+function buildProviders(listings: ProviderPickerItem[]): ProviderMeta[] {
   const map = new Map<string, ProviderMeta>();
 
   for (const item of listings) {

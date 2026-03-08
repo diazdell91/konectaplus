@@ -1,5 +1,5 @@
 /**
- * RechargeTypeTabs
+ * TopupTypeTabs
  *
  * Segmented control with three tabs:
  *   Recargas  → VOUCHER

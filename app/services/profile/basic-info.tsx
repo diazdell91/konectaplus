@@ -1,11 +1,12 @@
 import { Button, Input, Text } from "@/components/ui";
-import { ME, MeData } from "@/graphql/me";
+import { ME, MeData, UPSERT_MY_PROFILE, UpsertMyProfileData, UpsertMyProfileVars } from "@/graphql/me";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { SPACING } from "@/theme/spacing";
-import { useQuery } from "@apollo/client/react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import { toast } from "sonner-native";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -19,8 +20,49 @@ export default function BasicInfoScreen() {
     fetchPolicy: "cache-and-network",
   });
 
+  const [upsertProfile, { loading: saving }] = useMutation<
+    UpsertMyProfileData,
+    UpsertMyProfileVars
+  >(UPSERT_MY_PROFILE, {
+    refetchQueries: [{ query: ME }],
+    onCompleted: () => toast.success("Perfil actualizado"),
+    onError: (err) => toast.error(err.message ?? "Error al guardar"),
+  });
+
   const me = data?.me;
   const profile = me?.profile;
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  // Sync state when data loads
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.firstName ?? "");
+      setLastName(profile.lastName ?? "");
+    }
+  }, [profile]);
+
+  const isDirty =
+    firstName.trim() !== (profile?.firstName ?? "") ||
+    lastName.trim() !== (profile?.lastName ?? "");
+
+  const handleSave = async () => {
+    await upsertProfile({
+      variables: {
+        firstName: firstName.trim() || undefined,
+        lastName: lastName.trim() || undefined,
+      },
+    });
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setFirstName(profile?.firstName ?? "");
+    setLastName(profile?.lastName ?? "");
+    setEditing(false);
+  };
 
   if (loading && !me) {
     return (
@@ -37,7 +79,7 @@ export default function BasicInfoScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Avatar placeholder */}
+        {/* Avatar */}
         <View style={styles.avatarWrap}>
           <View style={styles.avatar}>
             <Ionicons name="person" size={40} color={COLORS.primary.main} />
@@ -50,24 +92,29 @@ export default function BasicInfoScreen() {
           )}
         </View>
 
-        {/* Info fields (solo lectura por ahora) */}
+        {/* Personal data */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Datos personales</Text>
 
           <Input
             label="Nombre"
-            value={profile?.firstName ?? ""}
-            editable={false}
-            placeholder="—"
+            value={firstName}
+            onChangeText={setFirstName}
+            editable={editing}
+            placeholder="Tu nombre"
+            autoCapitalize="words"
           />
           <Input
             label="Apellido"
-            value={profile?.lastName ?? ""}
-            editable={false}
-            placeholder="—"
+            value={lastName}
+            onChangeText={setLastName}
+            editable={editing}
+            placeholder="Tu apellido"
+            autoCapitalize="words"
           />
         </View>
 
+        {/* Contact (read-only) */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Contacto</Text>
 
@@ -86,6 +133,7 @@ export default function BasicInfoScreen() {
           />
         </View>
 
+        {/* Account info (read-only) */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Cuenta</Text>
 
@@ -111,13 +159,31 @@ export default function BasicInfoScreen() {
           />
         </View>
 
+        {/* Actions */}
         <View style={styles.footer}>
-          <Button
-            variant="outline"
-            title="Editar información"
-            onPress={() => {}}
-            disabled
-          />
+          {editing ? (
+            <View style={styles.editActions}>
+              <Button
+                variant="outline"
+                title="Cancelar"
+                onPress={handleCancel}
+                style={styles.cancelBtn}
+              />
+              <Button
+                variant="primary"
+                title={saving ? "Guardando…" : "Guardar"}
+                onPress={handleSave}
+                disabled={saving || !isDirty}
+                style={styles.saveBtn}
+              />
+            </View>
+          ) : (
+            <Button
+              variant="outline"
+              title="Editar información"
+              onPress={() => setEditing(true)}
+            />
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -180,5 +246,15 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: SPACING.md,
+  },
+  editActions: {
+    flexDirection: "row",
+    gap: SPACING.sm,
+  },
+  cancelBtn: {
+    flex: 1,
+  },
+  saveBtn: {
+    flex: 1,
   },
 });

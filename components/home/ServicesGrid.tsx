@@ -19,21 +19,36 @@ const CARD_HEIGHT = 158;
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
 const ICON_MAP: Record<string, IoniconName> = {
-  RECHARGE_MOBILE: "phone-portrait-outline",
-  RECHARGE_NAUTA: "mail-outline",
-  RECHARGE_WALLET: "wallet-outline",
+  TOPUP_MOBILE: "phone-portrait-outline",
+  TOPUP_NAUTA: "mail-outline",
+  TOPUP_WALLET: "wallet-outline",
+  SHIPMENTS: "cube-outline",
   GIFT_CARD: "gift-outline",
 };
 
 const COLOR_MAP: Record<string, string> = {
-  RECHARGE_MOBILE: "#4DA3FF",
-  RECHARGE_NAUTA: "#4ED173",
-  RECHARGE_WALLET: "#B07CFF",
-  GIFT_CARD: "#FF830C",
+  TOPUP_MOBILE: "#4DA3FF",
+  TOPUP_NAUTA: "#4ED173",
+  TOPUP_WALLET: "#B07CFF",
+  SHIPMENTS: "#FF830C",
+  GIFT_CARD: "#F59E0B",
+};
+
+// Map backend iconName values to Ionicons names
+const BACKEND_ICON_MAP: Record<string, IoniconName> = {
+  phone: "phone-portrait-outline",
+  mail: "mail-outline",
+  wallet: "wallet-outline",
+  cube: "cube-outline",
+  gift: "gift-outline",
 };
 
 const FALLBACK_ICON: IoniconName = "apps-outline";
 const FALLBACK_COLOR = "#9AA5B4";
+
+function resolveIcon(item: ServiceItem): IoniconName {
+  return ICON_MAP[item.key] ?? BACKEND_ICON_MAP[item.iconName] ?? FALLBACK_ICON;
+}
 
 interface ServicesGridProps {
   onPressService?: (key: string) => void;
@@ -62,7 +77,9 @@ const ServicesGrid = ({ onPressService }: ServicesGridProps) => {
   }, [data]);
 
   const handlePress = (item: ServiceItem) => {
+    console.log("first");
     if (onPressService) {
+      console.log(item.key);
       onPressService(item.key);
     } else {
       router.push(item.route as never);
@@ -113,7 +130,7 @@ const ServicesGrid = ({ onPressService }: ServicesGridProps) => {
                   {/* Icon */}
                   <View style={styles.iconWrapper}>
                     <Ionicons
-                      name={ICON_MAP[item.key] ?? FALLBACK_ICON}
+                      name={resolveIcon(item)}
                       size={52}
                       color="rgba(255,255,255,0.95)"
                     />

@@ -61,3 +61,26 @@ export interface MeUser {
 export interface MeData {
   me: MeUser;
 }
+
+export const UPSERT_MY_PROFILE = gql`
+  mutation UpsertMyProfile($firstName: String, $lastName: String) {
+    upsertMyProfile(firstName: $firstName, lastName: $lastName) {
+      id
+      userId
+      firstName
+      lastName
+      fullName
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export interface UpsertMyProfileData {
+  upsertMyProfile: MeProfile;
+}
+
+export interface UpsertMyProfileVars {
+  firstName?: string;
+  lastName?: string;
+}

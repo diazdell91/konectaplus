@@ -88,7 +88,7 @@ export default function ProfileScreen() {
             onPress={() => router.push("/services/profile/change-password")}
           />
           <ProfileListItem
-            icon="shield-checkmark-outline"
+            icon="shield-check-outline"
             title="Sesiones activas"
             subtitle="Dispositivos con acceso a tu cuenta"
             onPress={() => router.push("/services/profile/sessions")}

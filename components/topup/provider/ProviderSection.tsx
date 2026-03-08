@@ -1,12 +1,18 @@
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
-import { TopupProductListing } from "@/graphql/adminTopupProductListings";
 import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import ProviderPicker from "./ProviderPicker";
 
+interface ProviderItem {
+  id: string;
+  providerCode: string;
+  serviceProvider: string | null;
+  logoUrl: string | null;
+}
+
 interface Props {
-  listings: TopupProductListing[];
+  listings: ProviderItem[];
   loading: boolean;
   error: Error | undefined;
   selectedProviderCode: string | null;

@@ -2,16 +2,16 @@ import PaymentMethodPicker from "@/components/payment/PaymentMethodPicker";
 import SummaryRow from "@/components/payment/SummaryRow";
 import { Button, Text } from "@/components/ui";
 import {
-  CREATE_RECHARGE_ORDER,
-  CreateRechargeOrderData,
-  CreateRechargeOrderVars,
-} from "@/graphql/rechargeOrder";
+  CREATE_TOPUP_ORDER,
+  CreateTopupOrderData,
+  CreateTopupOrderVars,
+} from "@/graphql/topupOrder";
 import { SelectedPaymentMethod } from "@/store/usePaymentStore";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { formatUsd } from "@/utils/currency";
 import { useMutation } from "@apollo/client/react";
-import { useStripe } from "@stripe/stripe-react-native";
+import { PaymentIntent, useStripe } from "@stripe/stripe-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
@@ -44,10 +44,10 @@ export default function TopupConfirmScreen() {
   const [selectedMethod, setSelectedMethod] = useState<SelectedPaymentMethod | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [createRechargeOrder] = useMutation<
-    CreateRechargeOrderData,
-    CreateRechargeOrderVars
-  >(CREATE_RECHARGE_ORDER);
+  const [createTopupOrder] = useMutation<
+    CreateTopupOrderData,
+    CreateTopupOrderVars
+  >(CREATE_TOPUP_ORDER);
 
   const canConfirm = !!selectedMethod && !submitting;
 
@@ -85,8 +85,8 @@ export default function TopupConfirmScreen() {
 
     setSubmitting(true);
     try {
-      const { data } = await createRechargeOrder({ variables: { input } });
-      const result = data?.createRechargeOrder;
+      const { data } = await createTopupOrder({ variables: { input } });
+      const result = data?.createTopupOrder;
 
       console.log("[TopupConfirm] result:", JSON.stringify(result, null, 2));
 
@@ -107,7 +107,7 @@ export default function TopupConfirmScreen() {
 
       console.log("[TopupConfirm] 3DS requerido | orderId:", result.orderId);
 
-      const { error } = await confirmPayment(result.clientSecret, {
+      const { error, paymentIntent } = await confirmPayment(result.clientSecret, {
         paymentMethodType: "Card",
         paymentMethodData: { paymentMethodId: stripePaymentMethodId },
       });
@@ -117,9 +117,28 @@ export default function TopupConfirmScreen() {
         throw new Error(error.message);
       }
 
-      console.log("[TopupConfirm] 3DS superado | orderId:", result.orderId);
-      showToast.success("Recarga procesada correctamente");
-      router.back();
+      const status = paymentIntent?.status;
+      console.log("[TopupConfirm] paymentIntent status:", status);
+
+      if (status === PaymentIntent.Status.Succeeded) {
+        showToast.success("Recarga procesada correctamente");
+        router.back();
+        return;
+      }
+
+      if (status === PaymentIntent.Status.Processing) {
+        showToast.info("Pago en procesamiento. Puede tardar unos segundos.");
+        router.back();
+        return;
+      }
+
+      if (status === PaymentIntent.Status.RequiresAction) {
+        showToast.info("Se requiere acción adicional para completar el pago.");
+        return;
+      }
+
+      console.warn("[TopupConfirm] estado inesperado:", status);
+      showToast.info(`Estado del pago: ${status ?? "Unknown"}`);
     } catch (err: any) {
       console.error("[TopupConfirm] error:", err);
       showToast.error(err?.message ?? "Error al procesar la recarga");

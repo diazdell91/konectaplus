@@ -6,7 +6,7 @@ type TabKey = "contacts" | "history";
 
 const tabs: { key: TabKey; title: string }[] = [
   { key: "contacts", title: "Contactos" },
-  { key: "history", title: "Historial" },
+  { key: "", title: "Historial" },
 ];
 
 export default function TopupScreen() {
