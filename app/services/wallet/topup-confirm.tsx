@@ -6,17 +6,20 @@ import {
   WalletTopupWithSavedCardData,
   WalletTopupWithSavedCardVars,
 } from "@/graphql/walletTopupProducts";
-import { SelectedPaymentMethod, usePaymentStore } from "@/store/usePaymentStore";
+import {
+  SelectedPaymentMethod,
+  usePaymentStore,
+} from "@/store/usePaymentStore";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { formatUsd } from "@/utils/currency";
+import { showToast } from "@/utils/toast";
 import { useMutation } from "@apollo/client/react";
 import { Ionicons } from "@expo/vector-icons";
 import { PaymentIntent, useStripe } from "@stripe/stripe-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { Text as RNText, StyleSheet, View } from "react-native";
-import { showToast } from "@/utils/toast";
 
 export default function WalletTopupConfirmScreen() {
   const { productId, amountCents, priceCents, feeCents } =
@@ -33,7 +36,8 @@ export default function WalletTopupConfirmScreen() {
   const price = useMemo(() => Number(priceCents), [priceCents]);
   const fee = useMemo(() => Number(feeCents), [feeCents]);
 
-  const [selectedMethod, setSelectedMethod] = useState<SelectedPaymentMethod | null>(null);
+  const [selectedMethod, setSelectedMethod] =
+    useState<SelectedPaymentMethod | null>(null);
   const clearStoredMethod = usePaymentStore((s) => s.clearSelectedMethod);
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -49,7 +53,8 @@ export default function WalletTopupConfirmScreen() {
   });
 
   const loading = mutationLoading || isConfirming;
-  const selectedCard = selectedMethod?.type === "CARD" ? selectedMethod.card : null;
+  const selectedCard =
+    selectedMethod?.type === "CARD" ? selectedMethod.card : null;
   const canConfirm = !!selectedCard && !loading;
 
   const handleConfirm = async () => {
@@ -62,21 +67,19 @@ export default function WalletTopupConfirmScreen() {
     try {
       setIsConfirming(true);
 
-      console.log("[WalletTopup] ▶ mutation vars:", {
-        productId,
-        cardId: selectedCard.id,
-        stripePaymentMethodId: selectedCard.stripePaymentMethodId,
-        cardBrand: selectedCard.brand,
-        cardLast4: selectedCard.last4,
-      });
-
-      const { data, errors } = await walletTopup({
+      const { data, error } = await walletTopup({
         variables: { productId: productId!, cardId: selectedCard.id },
       });
 
-      console.log("[WalletTopup] ◀ raw response — data:", JSON.stringify(data, null, 2));
-      if (errors?.length) {
-        console.error("[WalletTopup] ◀ graphql errors:", JSON.stringify(errors, null, 2));
+      console.log(
+        "[WalletTopup] ◀ raw response — data:",
+        JSON.stringify(data, null, 2),
+      );
+      if (error) {
+        console.error(
+          "[WalletTopup] ◀ graphql error:",
+          JSON.stringify(error, null, 2),
+        );
       }
 
       const r = data?.walletTopupWithSavedCardUSD;
@@ -106,16 +109,30 @@ export default function WalletTopupConfirmScreen() {
           throw new Error("Se requiere acción pero falta clientSecret.");
         }
 
-        console.log("[WalletTopup] ⚠️ Caso 2 — 3DS requerido | confirmPayment con paymentMethodId:", selectedCard.stripePaymentMethodId);
+        console.log(
+          "[WalletTopup] ⚠️ Caso 2 — 3DS requerido | confirmPayment con paymentMethodId:",
+          selectedCard.stripePaymentMethodId,
+        );
         const { error, paymentIntent } = await confirmPayment(r.clientSecret, {
           paymentMethodType: "Card",
-          paymentMethodData: { paymentMethodId: selectedCard.stripePaymentMethodId },
+          paymentMethodData: {
+            paymentMethodId: selectedCard.stripePaymentMethodId,
+          },
         });
 
-        console.log("[WalletTopup] confirmPayment result — error:", JSON.stringify(error), "| paymentIntent:", JSON.stringify(paymentIntent, null, 2));
+        console.log(
+          "[WalletTopup] confirmPayment result — error:",
+          JSON.stringify(error),
+          "| paymentIntent:",
+          JSON.stringify(paymentIntent, null, 2),
+        );
 
         if (error) {
-          console.warn("[WalletTopup] ❌ Stripe error:", error.code, error.message);
+          console.warn(
+            "[WalletTopup] ❌ Stripe error:",
+            error.code,
+            error.message,
+          );
           showToast.error(error.message ?? "No se pudo confirmar el pago.");
           return;
         }
@@ -139,7 +156,9 @@ export default function WalletTopupConfirmScreen() {
 
         if (status === PaymentIntent.Status.RequiresAction) {
           console.log("[WalletTopup] 🔐 Stripe RequiresAction");
-          showToast.info("Se requiere acción adicional para completar el pago.");
+          showToast.info(
+            "Se requiere acción adicional para completar el pago.",
+          );
           return;
         }
 
@@ -198,7 +217,6 @@ export default function WalletTopupConfirmScreen() {
             onSelect={setSelectedMethod}
             hideWallet
           />
-
         </View>
 
         <View style={styles.footer}>
