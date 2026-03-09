@@ -18,8 +18,8 @@ const HomeScreen = () => {
         </View>
 
         <HomeHeroCarousel
-          onPressSlide={(id) => {
-            console.log("Slide pressed:", id);
+          onPressSlide={(banner) => {
+            console.log("Slide pressed:", banner.id, banner.actionType, banner.actionValue);
           }}
         />
 

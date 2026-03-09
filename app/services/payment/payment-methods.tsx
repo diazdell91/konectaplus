@@ -1,5 +1,5 @@
-import PaymentMethodButton from "@/components/payment/PaymentMethodButton";
-import SavedCardRow from "@/components/payment/SavedCardRow";
+import PaymentMethodButton from "@/features/payment/components/PaymentMethodButton";
+import SavedCardRow from "@/features/payment/components/SavedCardRow";
 import { MY_CARDS, MyCardsData } from "@/graphql/paymentMethods";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";

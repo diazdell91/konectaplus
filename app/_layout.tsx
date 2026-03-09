@@ -1,8 +1,6 @@
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
-import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { SplashScreen, Stack } from "expo-router";
 import {
   configureReanimatedLogger,
   ReanimatedLogLevel,
@@ -13,11 +11,14 @@ import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { ApolloProvider } from "@/apollo/apolloProvider";
+import { FONTS } from "@/constants/Fonts";
 import { AppSettingsProvider } from "@/context/AppSettings";
-import { AuthProvider, useAuth } from "@/context/AuthProvider";
+import { AuthProvider } from "@/context/AuthProvider";
 import { PhoneCountryProvider } from "@/context/PhoneCountry";
 import { TopupCartProvider } from "@/context/TopupCartContext";
+import { selectIsAuthenticated, selectIsHydrated, useAuthStore } from "@/store/useAuthStore";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import { useFonts } from "expo-font";
 import * as Haptics from "expo-haptics";
 import { PressablesConfig } from "pressto";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -33,39 +34,14 @@ configureReanimatedLogger({
   strict: false, // Disable strict mode to suppress false-positive warnings
 });
 
-function AppSplash() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: COLORS.background.primary,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 16,
-      }}
-    >
-      <View
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: 20,
-          backgroundColor: COLORS.primary.main,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Ionicons name="flash" size={32} color="#fff" />
-      </View>
-      <ActivityIndicator color={COLORS.primary.main} size="small" />
-    </View>
-  );
-}
-
 function AppContent() {
-  const { isAuthenticated, isHydrated } = useAuth();
+  const [loaded] = useFonts({ ...FONTS });
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const isHydrated = useAuthStore(selectIsHydrated);
 
-  if (!isHydrated) {
-    return <AppSplash />;
+  if (!isHydrated || !loaded) {
+    SplashScreen.preventAutoHideAsync();
+    return null;
   }
 
   return (

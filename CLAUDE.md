@@ -36,6 +36,7 @@ The root `app/_layout.tsx` controls which group is shown based on auth state (vi
 ### Provider Stack (root layout)
 
 Providers wrap in this order:
+
 1. `GestureHandlerRootView` — gesture support
 2. `ApolloProvider` — GraphQL client
 3. `AuthProvider` — auth state & mutations
@@ -53,6 +54,7 @@ No Redux/Zustand — state lives in two React Contexts:
 ### GraphQL / Apollo
 
 `apollo/apolloClient.tsx` configures the Apollo Client with:
+
 - Auth link that injects Bearer tokens from `AuthProvider`
 - Error link that handles `TOKEN_EXPIRED`/`UNAUTHENTICATED` — uses RxJS to queue and retry requests during token refresh
 - Default policies: `watchQuery: cache-and-network`, `query: cache-first`, `mutate: no-cache`
@@ -60,6 +62,7 @@ No Redux/Zustand — state lives in two React Contexts:
 ### Design System
 
 All design tokens live in `theme/`:
+
 - `colors.ts` — full palette; primary green `#09816c`, secondary orange `#FF830C`
 - `spacing.ts` — 8px base unit, named scale (xs=4px → xxxl=64px), component-specific tokens like `screenPadding` (16px)
 - `typography.ts` — Montserrat font family, named variants (h1–h4, body, caption, button, etc.)
@@ -89,3 +92,27 @@ Uses `react-native-reanimated` v4. Reanimated warning logs are suppressed in the
 ### Notifications / Toasts
 
 `sonner-native` — `<Toaster />` is mounted in the root layout. Use `toast()` calls anywhere in the app.
+
+# Claude Engineering Rules
+
+Claude must follow all rules defined in docs/ai/.
+
+## Screen Architecture
+
+docs/ai/screen-architecture.md
+
+## Component Guidelines
+
+docs/ai/component-guidelines.md
+
+## Hooks Guidelines
+
+docs/ai/hooks-guidelines.md
+
+## Styling Guidelines
+
+docs/ai/styling-guidelines.md
+
+## Feature Architecture
+
+docs/ai/feature-architecture.md

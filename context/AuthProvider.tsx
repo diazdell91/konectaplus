@@ -1,14 +1,13 @@
-// AuthProvider.tsx
 import { gql } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
-import Storage from "expo-sqlite/kv-store";
-import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
+import { useAuthStore } from "@/store/useAuthStore";
+import React, { createContext, useCallback, useMemo } from "react";
+import { Platform } from "react-native";
 
-const STORAGE_KEY = "@auth_state";
-
-// --------------------
+// ─────────────────────────────────────────────
 // GraphQL documents
-// --------------------
+// ─────────────────────────────────────────────
+
 const REQUEST_OTP = gql`
   mutation RequestOtp($phone: String!, $purpose: OtpPurpose!) {
     requestOtp(phone: $phone, purpose: $purpose) {
@@ -50,15 +49,11 @@ const LOGOUT = gql`
   }
 `;
 
-// --------------------
-// Types (mínimos)
-// --------------------
-export type AuthUser = {
-  id: string;
-  phone: string;
-  email: string | null;
-  emailVerified: boolean;
-};
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+export type { AuthUser } from "@/store/useAuthStore";
 
 export type AuthSession = {
   id: string;
@@ -71,20 +66,6 @@ export type AuthSession = {
   revokedAt?: string | null;
 };
 
-export type AuthState = {
-  accessToken: string | null;
-  refreshToken: string | null;
-  user: AuthUser | null;
-  sessionId: string | null; // session.id
-};
-
-const DEFAULT_AUTH: AuthState = {
-  accessToken: null,
-  refreshToken: null,
-  user: null,
-  sessionId: null,
-};
-
 type RequestOtpResult = {
   success: boolean;
   message: string;
@@ -94,26 +75,11 @@ type RequestOtpResult = {
 type VerifyOtpResult = {
   accessToken: string;
   refreshToken: string;
-  user: AuthUser;
+  user: import("@/store/useAuthStore").AuthUser;
   session: AuthSession;
 };
 
 type AuthContextType = {
-  // state
-  auth: AuthState;
-  isAuthenticated: boolean;
-  isHydrated: boolean;
-
-  // getters útiles (por si quieres usarlos en links)
-  getAccessToken: () => string | null;
-  getRefreshToken: () => string | null;
-
-  // actions
-  setAuth: (next: Partial<AuthState>) => Promise<void>;
-  setAuthSync: (next: Partial<AuthState>) => void;
-  clearAuth: () => Promise<void>;
-  clearAuthSync: () => void;
-
   requestOtp: (args: {
     phone: string;
     purpose: "LOGIN" | "REGISTER" | string;
@@ -121,22 +87,16 @@ type AuthContextType = {
   verifyOtp: (args: {
     phone: string;
     code: string;
-    device: { deviceId: string; deviceName: string };
+    device?: { deviceId: string; deviceName: string };
   }) => Promise<VerifyOtpResult>;
-
   logout: () => Promise<boolean>;
 };
 
+// ─────────────────────────────────────────────
+// Context
+// ─────────────────────────────────────────────
+
 export const AuthContext = createContext<AuthContextType>({
-  auth: DEFAULT_AUTH,
-  isAuthenticated: false,
-  isHydrated: false,
-  getAccessToken: () => null,
-  getRefreshToken: () => null,
-  setAuth: async () => {},
-  setAuthSync: () => {},
-  clearAuth: async () => {},
-  clearAuthSync: () => {},
   requestOtp: async () => ({
     success: false,
     message: "Not initialized",
@@ -148,119 +108,21 @@ export const AuthContext = createContext<AuthContextType>({
   logout: async () => false,
 });
 
-// --------------------
-// Storage helpers
-// --------------------
-function loadAuthSync(): AuthState {
-  try {
-    const raw = Storage.getItemSync(STORAGE_KEY);
-    if (!raw) return DEFAULT_AUTH;
-    const parsed = JSON.parse(raw);
-    // merge defensivo por si agregas campos luego
-    return { ...DEFAULT_AUTH, ...parsed };
-  } catch (e) {
-    console.error("Failed to load auth:", e);
-    return DEFAULT_AUTH;
-  }
-}
-
-async function persistAuth(next: AuthState) {
-  await Storage.setItem(STORAGE_KEY, JSON.stringify(next));
-}
-
-function persistAuthSync(next: AuthState) {
-  Storage.setItemSync(STORAGE_KEY, JSON.stringify(next));
-}
-
-// --------------------
+// ─────────────────────────────────────────────
 // Provider
-// --------------------
+// ─────────────────────────────────────────────
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const client = useApolloClient();
 
-  // Carga síncrona desde storage
-  const [auth, setAuthState] = useState<AuthState>(loadAuthSync);
-  // isHydrated se pone true tras el primer render, garantizando que
-  // el token ya está en memoria antes de que Apollo lance queries.
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  const isAuthenticated =
-    !!auth.accessToken && !!auth.refreshToken && !!auth.user;
-
-  const getAccessToken = useCallback(
-    () => auth.accessToken,
-    [auth.accessToken],
-  );
-  const getRefreshToken = useCallback(
-    () => auth.refreshToken,
-    [auth.refreshToken],
-  );
-
-  const setAuth = useCallback(
-    async (next: Partial<AuthState>) => {
-      const merged: AuthState = { ...auth, ...next };
-      setAuthState(merged);
-      try {
-        await persistAuth(merged);
-      } catch (e) {
-        console.error("Failed to persist auth:", e);
-        throw e;
-      }
-    },
-    [auth],
-  );
-
-  const setAuthSync = useCallback(
-    (next: Partial<AuthState>) => {
-      const merged: AuthState = { ...auth, ...next };
-      setAuthState(merged);
-      try {
-        persistAuthSync(merged);
-      } catch (e) {
-        console.error("Failed to persist auth (sync):", e);
-        throw e;
-      }
-    },
-    [auth],
-  );
-
-  const clearAuth = useCallback(async () => {
-    setAuthState(DEFAULT_AUTH);
-    try {
-      await Storage.removeItem(STORAGE_KEY);
-    } catch (e) {
-      console.error("Failed to clear auth:", e);
-      throw e;
-    }
-  }, []);
-
-  const clearAuthSync = useCallback(() => {
-    setAuthState(DEFAULT_AUTH);
-    try {
-      Storage.removeItemSync(STORAGE_KEY);
-    } catch (e) {
-      console.error("Failed to clear auth (sync):", e);
-      throw e;
-    }
-  }, []);
-
-  // --------------------
-  // Mutations
-  // --------------------
   const requestOtp = useCallback(
     async (args: { phone: string; purpose: "LOGIN" | "REGISTER" | string }) => {
-      const { data } = await client.mutate({
+      const { data } = await client.mutate<{ requestOtp: RequestOtpResult }>({
         mutation: REQUEST_OTP,
         variables: { phone: args.phone, purpose: args.purpose },
         fetchPolicy: "no-cache",
       });
-
-      console.log(data);
-      return data?.requestOtp as RequestOtpResult;
+      return data!.requestOtp;
     },
     [client],
   );
@@ -269,18 +131,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (args: {
       phone: string;
       code: string;
-      device: { deviceId: string; deviceName: string };
+      device?: { deviceId: string; deviceName: string };
     }) => {
-      const { data } = await client.mutate({
+      const device = args.device ?? {
+        appVersion: null,
+        deviceId: null,
+        deviceName: Platform.OS === "ios" ? "iPhone" : "Android",
+        expoPushToken: null,
+        locale: null,
+        metadata: null,
+        nativePushToken: null,
+        osVersion: null,
+        platform: Platform.OS.toUpperCase(),
+        pushPermissionStatus: "UNKNOWN",
+        timezone: null,
+      };
+
+      const { data } = await client.mutate<{ verifyOtp: VerifyOtpResult }>({
         mutation: VERIFY_OTP,
-        variables: { phone: args.phone, code: args.code, device: args.device },
+        variables: { phone: args.phone, code: args.code, device },
         fetchPolicy: "no-cache",
       });
 
-      const payload = data?.verifyOtp as VerifyOtpResult;
+      const payload = data!.verifyOtp;
 
-      // Persistimos todo lo importante
-      await setAuth({
+      useAuthStore.getState().setAuth({
         accessToken: payload.accessToken,
         refreshToken: payload.refreshToken,
         user: payload.user,
@@ -289,78 +164,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return payload;
     },
-    [client, setAuth],
+    [client],
   );
 
   const logout = useCallback(async () => {
-    // Si no hay sesión, limpiamos local y ya
-    if (!auth.sessionId) {
-      await clearAuth();
-      // (Opcional) limpiar cache apollo también:
-      // await client.clearStore();
+    const sessionId = useAuthStore.getState().sessionId;
+
+    if (!sessionId) {
+      useAuthStore.getState().clearAuth();
       return true;
     }
 
     try {
-      const { data } = await client.mutate({
+      const { data } = await client.mutate<{ logout: boolean }>({
         mutation: LOGOUT,
-        variables: { sessionId: auth.sessionId },
+        variables: { sessionId },
         fetchPolicy: "no-cache",
       });
-
-      // Limpieza local aunque el backend diga false (por seguridad)
-      await clearAuth();
-      // (Opcional) limpiar cache apollo:
-      // await client.clearStore();
-
+      useAuthStore.getState().clearAuth();
       return !!data?.logout;
     } catch (e) {
-      // Aún así: por seguridad, borra local
-      console.warn("Logout failed, clearing local auth anyway:", e);
-      await clearAuth();
+      console.warn("[AuthProvider] Logout failed, clearing local auth:", e);
+      useAuthStore.getState().clearAuth();
       return false;
     }
-  }, [auth.sessionId, clearAuth, client]);
+  }, [client]);
 
-  const value = useMemo<AuthContextType>(
-    () => ({
-      auth,
-      isAuthenticated,
-      isHydrated,
-      getAccessToken,
-      getRefreshToken,
-      setAuth,
-      setAuthSync,
-      clearAuth,
-      clearAuthSync,
-      requestOtp,
-      verifyOtp,
-      logout,
-    }),
-    [
-      auth,
-      isAuthenticated,
-      isHydrated,
-      getAccessToken,
-      getRefreshToken,
-      setAuth,
-      setAuthSync,
-      clearAuth,
-      clearAuthSync,
-      requestOtp,
-      verifyOtp,
-      logout,
-    ],
+  const value = useMemo(
+    () => ({ requestOtp, verifyOtp, logout }),
+    [requestOtp, verifyOtp, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// --------------------
-// Hook helper
-// --------------------
+// ─────────────────────────────────────────────
+// Hook — compone store + mutations
+// ─────────────────────────────────────────────
+
 export function useAuth() {
   const ctx = React.useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+
+  const store = useAuthStore();
+
+  return {
+    // Estado del store (reactivo)
+    auth: {
+      accessToken: store.accessToken,
+      refreshToken: store.refreshToken,
+      user: store.user,
+      sessionId: store.sessionId,
+    },
+    isAuthenticated: store.isAuthenticated(),
+    isHydrated: store.isHydrated,
+    // Getters estables
+    getAccessToken: store.getAccessToken,
+    getRefreshToken: store.getRefreshToken,
+    // Mutations del context
+    requestOtp: ctx.requestOtp,
+    verifyOtp: ctx.verifyOtp,
+    logout: ctx.logout,
+  };
 }

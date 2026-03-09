@@ -1,5 +1,5 @@
-import PaymentMethodPicker from "@/components/payment/PaymentMethodPicker";
-import SummaryRow from "@/components/payment/SummaryRow";
+import PaymentMethodPicker from "@/features/payment/components/PaymentMethodPicker";
+import SummaryRow from "@/features/payment/components/SummaryRow";
 import { Button, Text } from "@/components/ui";
 import {
   CREATE_TOPUP_ORDER,

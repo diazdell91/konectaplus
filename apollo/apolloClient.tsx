@@ -12,58 +12,63 @@ import {
 } from "@apollo/client/errors";
 import { SetContextLink } from "@apollo/client/link/context";
 import { ErrorLink } from "@apollo/client/link/error";
-import Storage from "expo-sqlite/kv-store";
+import { useAuthStore } from "@/store/useAuthStore";
 
 // RxJS
 import { from as rxFrom } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 
-type RefreshTokensData = {
-  refreshTokens: { accessToken: string; refreshToken: string };
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+type RefreshSessionData = {
+  refreshSession: {
+    accessToken: string;
+    refreshToken: string;
+  };
 };
+
+// ─────────────────────────────────────────────
+// Config
+// ─────────────────────────────────────────────
 
 const GRAPHQL_URL =
   (process.env.EXPO_PUBLIC_GRAPHQL_URL as string) ||
   "http://localhost:4000/graphql";
 
-const AUTH_STORAGE_KEY = "@auth_state";
+// ─────────────────────────────────────────────
+// Refresh mutation — matches real schema
+// ─────────────────────────────────────────────
 
-type AuthState = {
-  accessToken: string | null;
-  refreshToken: string | null;
-  user?: any;
-  sessionId?: string | null;
-};
-
-function getAuthSync(): AuthState {
-  try {
-    const raw = Storage.getItemSync(AUTH_STORAGE_KEY);
-    if (!raw) return { accessToken: null, refreshToken: null };
-    return JSON.parse(raw);
-  } catch {
-    return { accessToken: null, refreshToken: null };
-  }
-}
-
-function setAuthSync(next: Partial<AuthState>) {
-  const prev = getAuthSync();
-  const merged = { ...prev, ...next };
-  Storage.setItemSync(AUTH_STORAGE_KEY, JSON.stringify(merged));
-}
-
-function clearAuthSync() {
-  Storage.removeItemSync(AUTH_STORAGE_KEY);
-}
-
-// ⚠️ Ajusta a tu schema real
-const REFRESH_TOKENS = gql`
-  mutation RefreshTokens($refreshToken: String!) {
-    refreshTokens(refreshToken: $refreshToken) {
+const REFRESH_SESSION = gql`
+  mutation RefreshSession($refreshToken: String!, $device: DeviceInput!) {
+    refreshSession(refreshToken: $refreshToken, device: $device) {
       accessToken
       refreshToken
+      user {
+        id
+        phone
+        email
+        emailVerified
+      }
+      session {
+        id
+        deviceId
+        deviceName
+        ip
+        userAgent
+        createdAt
+        expiresAt
+        revokedAt
+      }
     }
   }
 `;
+
+// ─────────────────────────────────────────────
+// Refresh queue
+// ─────────────────────────────────────────────
 
 let isRefreshing = false;
 let pendingResolvers: ((token: string | null) => void)[] = [];
@@ -73,31 +78,57 @@ function resolvePending(token: string | null) {
   pendingResolvers = [];
 }
 
-async function refreshAccessToken(client: ApolloClient) {
-  const { refreshToken } = getAuthSync();
+async function refreshAccessToken(client: ApolloClient<unknown>) {
+  const refreshToken = useAuthStore.getState().getRefreshToken();
   if (!refreshToken) return null;
 
-  const res = await client.mutate<RefreshTokensData>({
-    mutation: REFRESH_TOKENS,
-    variables: { refreshToken },
-    fetchPolicy: "no-cache",
-  });
+  try {
+    const res = await client.mutate<RefreshSessionData>({
+      mutation: REFRESH_SESSION,
+      variables: {
+        refreshToken,
+        device: {
+          appVersion: null,
+          deviceId: null,
+          deviceName: null,
+          expoPushToken: null,
+          locale: null,
+          metadata: null,
+          nativePushToken: null,
+          osVersion: null,
+          platform: null,
+          pushPermissionStatus: "UNKNOWN",
+          timezone: null,
+        },
+      },
+      fetchPolicy: "no-cache",
+    });
 
-  const newAccess = res.data?.refreshTokens?.accessToken ?? null;
-  const newRefresh = res.data?.refreshTokens?.refreshToken ?? null;
+    const newAccess = res.data?.refreshSession?.accessToken ?? null;
+    const newRefresh = res.data?.refreshSession?.refreshToken ?? null;
 
-  if (!newAccess || !newRefresh) return null;
+    if (!newAccess || !newRefresh) return null;
 
-  setAuthSync({ accessToken: newAccess, refreshToken: newRefresh });
-  return newAccess;
+    useAuthStore.getState().setAuth({
+      accessToken: newAccess,
+      refreshToken: newRefresh,
+    });
+
+    return newAccess;
+  } catch (e) {
+    console.error("[Apollo] refreshAccessToken failed:", e);
+    return null;
+  }
 }
 
-// ---- HTTP ----
+// ─────────────────────────────────────────────
+// Links
+// ─────────────────────────────────────────────
+
 const httpLink = new HttpLink({ uri: GRAPHQL_URL });
 
-// ---- Auth header (AC4 docs: SetContextLink) ----
 const authLink = new SetContextLink(({ headers }) => {
-  const { accessToken } = getAuthSync();
+  const accessToken = useAuthStore.getState().getAccessToken();
   return {
     headers: {
       ...headers,
@@ -106,38 +137,32 @@ const authLink = new SetContextLink(({ headers }) => {
   };
 });
 
-function isTokenExpiredFromErrorLike(error: unknown) {
-  // GraphQL errors (spec) => CombinedGraphQLErrors con .errors[]
+function isTokenExpiredError(error: unknown) {
   if (CombinedGraphQLErrors.is(error)) {
     return error.errors.some((e) => {
       const code = (e as any)?.extensions?.code;
       return code === "TOKEN_EXPIRED" || code === "UNAUTHENTICATED";
     });
   }
-
-  // Protocol errors (GraphQL over HTTP) — por si tu server retorna este tipo
   if (CombinedProtocolErrors.is(error)) {
     return error.errors.some((e) => {
       const code = (e as any)?.extensions?.code;
       return code === "TOKEN_EXPIRED" || code === "UNAUTHENTICATED";
     });
   }
-
   return false;
 }
 
-// Ref para usar el client dentro de ErrorLink
-const apolloClientRef: { current: ApolloClient | null } = {
+const apolloClientRef: { current: ApolloClient<unknown> | null } = {
   current: null,
 };
 
 const errorLink = new ErrorLink(({ error, operation, forward }) => {
-  // Solo manejamos expiración auth
-  if (!isTokenExpiredFromErrorLike(error)) return;
+  if (!isTokenExpiredError(error)) return;
 
-  // Evitar loop: si el refresh falla, limpiamos y no reintentamos
-  if (operation.operationName === "RefreshTokens") {
-    clearAuthSync();
+  // Evitar loop infinito si el refresh mismo falla
+  if (operation.operationName === "RefreshSession") {
+    useAuthStore.getState().clearAuth();
     return;
   }
 
@@ -147,16 +172,16 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
     const client = apolloClientRef.current;
     if (!client) {
       isRefreshing = false;
-      clearAuthSync();
+      useAuthStore.getState().clearAuth();
       resolvePending(null);
       return;
     }
 
-    rxFrom(refreshAccessToken(client).catch(() => null)).subscribe({
+    rxFrom(refreshAccessToken(client)).subscribe({
       next: (newToken) => {
         isRefreshing = false;
         if (!newToken) {
-          clearAuthSync();
+          useAuthStore.getState().clearAuth();
           resolvePending(null);
           return;
         }
@@ -164,13 +189,12 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
       },
       error: () => {
         isRefreshing = false;
-        clearAuthSync();
+        useAuthStore.getState().clearAuth();
         resolvePending(null);
       },
     });
   }
 
-  // Espera a que refresh termine y reintenta
   return rxFrom(
     new Promise<string | null>((resolve) => pendingResolvers.push(resolve)),
   ).pipe(
@@ -187,6 +211,10 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
     }),
   );
 });
+
+// ─────────────────────────────────────────────
+// Factory
+// ─────────────────────────────────────────────
 
 export function createApolloClient() {
   const client = new ApolloClient({

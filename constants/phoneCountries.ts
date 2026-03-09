@@ -4,7 +4,7 @@
 // - countries.tsx (Spanish names + mask + local flag assets)
 //
 // Place this file in the SAME folder where your old countries.tsx lived
-// so the require('../../assets/flags/...') paths keep working.
+// so the require('@/assets/flags/...') paths keep working.
 
 export const POPULAR_COUNTRY_ISOS = ["CU", "US", "MX", "DO", "ES"] as const;
 

@@ -1,8 +1,7 @@
-import { OnboardingScreen } from "@/components/screens";
-import React from "react";
+import OnboardingScreen from "@/features/auth/screens/OnboardingScreen";
 
-const Onboarding = () => {
+const OnboardingPage = () => {
   return <OnboardingScreen />;
 };
 
-export default Onboarding;
+export default OnboardingPage;

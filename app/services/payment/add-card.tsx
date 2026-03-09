@@ -1,6 +1,6 @@
-import CardInputSection from "@/components/payment/CardInputSection";
-import CardPreview from "@/components/payment/CardPreview";
-import SecureBadgeRow from "@/components/payment/SecureBadgeRow";
+import CardInputSection from "@/features/payment/components/CardInputSection";
+import CardPreview from "@/features/payment/components/CardPreview";
+import SecureBadgeRow from "@/features/payment/components/SecureBadgeRow";
 import { Button } from "@/components/ui";
 import {
   CREATE_SETUP_INTENT,

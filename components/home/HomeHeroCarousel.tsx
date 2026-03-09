@@ -1,6 +1,8 @@
+import { useQuery } from "@apollo/client/react";
 import { Image } from "expo-image";
 import React, { useCallback, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -9,44 +11,18 @@ import {
   View,
   ViewToken,
 } from "react-native";
+import {
+  HERO_BANNERS,
+  HeroBanner,
+  HeroBannersData,
+} from "@/graphql/heroBanners";
 import { FONT_FAMILIES } from "@/theme/typography";
 
 const SLIDE_MARGIN = 16;
 const SLIDE_GAP = 12;
 
-interface Slide {
-  id: string;
-  title: string;
-  buttonText: string;
-  image: string;
-}
-
-const slides: Slide[] = [
-  {
-    id: "1",
-    title: "¡No te quedes sin conexión! Recarga a cualquier parte del mundo.",
-    buttonText: "Recargar",
-    image:
-      "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=600&fit=crop",
-  },
-  {
-    id: "2",
-    title: "Envía saldo rápido y seguro a tu familia.",
-    buttonText: "Enviar ahora",
-    image:
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=600&fit=crop",
-  },
-  {
-    id: "3",
-    title: "Las mejores promociones internacionales.",
-    buttonText: "Ver ofertas",
-    image:
-      "https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?w=600&h=600&fit=crop",
-  },
-];
-
 interface HomeHeroCarouselProps {
-  onPressSlide?: (slideId: string) => void;
+  onPressSlide?: (banner: HeroBanner) => void;
 }
 
 const HomeHeroCarousel = ({ onPressSlide }: HomeHeroCarouselProps) => {
@@ -54,6 +30,8 @@ const HomeHeroCarousel = ({ onPressSlide }: HomeHeroCarouselProps) => {
   const slideWidth = width - SLIDE_MARGIN * 2;
   const [activeIndex, setActiveIndex] = useState(0);
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 });
+
+  const { data, loading } = useQuery<HeroBannersData>(HERO_BANNERS);
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -64,48 +42,62 @@ const HomeHeroCarousel = ({ onPressSlide }: HomeHeroCarouselProps) => {
     []
   );
 
-  const handlePress = (id: string) => {
+  const handlePress = (banner: HeroBanner) => {
     if (onPressSlide) {
-      onPressSlide(id);
-    } else {
-      console.log(id);
+      onPressSlide(banner);
     }
   };
 
-  const renderItem = ({ item }: { item: Slide }) => (
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator color="#3B82F6" />
+      </View>
+    );
+  }
+
+  const banners = data?.heroBanners ?? [];
+
+  if (banners.length === 0) return null;
+
+  const renderItem = ({ item }: { item: HeroBanner }) => (
     <Pressable
       style={[styles.slide, { width: slideWidth }]}
-      onPress={() => handlePress(item.id)}
+      onPress={() => handlePress(item)}
     >
       {/* Left content */}
       <View style={styles.slideLeft}>
         <Text style={styles.slideTitle} numberOfLines={3}>
           {item.title}
         </Text>
-        <Pressable
-          style={styles.button}
-          onPress={() => handlePress(item.id)}
-          hitSlop={8}
-        >
-          <Text style={styles.buttonText}>{item.buttonText}</Text>
-        </Pressable>
+        {item.subtitle ? (
+          <Pressable
+            style={styles.button}
+            onPress={() => handlePress(item)}
+            hitSlop={8}
+          >
+            <Text style={styles.buttonText}>{item.subtitle}</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {/* Right image */}
-      <View style={styles.slideRight}>
-        <Image
-          source={{ uri: item.image }}
-          style={styles.slideImage}
-          contentFit="contain"
-        />
-      </View>
+      {item.imageUrl ? (
+        <View style={styles.slideRight}>
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.slideImage}
+            contentFit="contain"
+          />
+        </View>
+      ) : null}
     </Pressable>
   );
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={slides}
+        data={banners}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         horizontal
@@ -120,14 +112,16 @@ const HomeHeroCarousel = ({ onPressSlide }: HomeHeroCarouselProps) => {
       />
 
       {/* Dots */}
-      <View style={styles.dotsRow}>
-        {slides.map((_, i) => (
-          <View
-            key={i}
-            style={[styles.dot, i === activeIndex && styles.dotActive]}
-          />
-        ))}
-      </View>
+      {banners.length > 1 && (
+        <View style={styles.dotsRow}>
+          {banners.map((_, i) => (
+            <View
+              key={i}
+              style={[styles.dot, i === activeIndex && styles.dotActive]}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
@@ -137,6 +131,11 @@ export default HomeHeroCarousel;
 const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
+  },
+  loadingContainer: {
+    height: 180,
+    justifyContent: "center",
+    alignItems: "center",
   },
   flatListContent: {
     paddingHorizontal: SLIDE_MARGIN,
