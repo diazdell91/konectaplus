@@ -18,7 +18,7 @@ export default function ScreenHeader() {
 
 const styles = StyleSheet.create({
   headerSection: {
-    backgroundColor: COLORS.light.background,
+    backgroundColor: COLORS.surface.primary,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5E5",
   },

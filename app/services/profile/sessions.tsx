@@ -58,7 +58,7 @@ function SessionCard({ session }: { session: SessionItem }) {
 
   const statusLabel = revoked ? "Revocada" : expired ? "Expirada" : "Activa";
   const statusColor = inactive ? COLORS.text.secondary : COLORS.primary.main;
-  const statusBg = inactive ? COLORS.background.tertiary : "#EAF7F5";
+  const statusBg = inactive ? COLORS.background.tertiary : COLORS.primary.tint;
 
   return (
     <View style={[styles.card, inactive && styles.cardInactive]}>

@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORS.primary.main,

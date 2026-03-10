@@ -44,7 +44,7 @@ const LedgerItem = ({ item }: Props) => {
   return (
     <View style={styles.row}>
       {/* Icon */}
-      <View style={[styles.iconWrap, { backgroundColor: isCredit ? "#EAF7F5" : "#FEF0F0" }]}>
+      <View style={[styles.iconWrap, { backgroundColor: isCredit ? COLORS.primary.tint : COLORS.semantic.errorTint }]}>
         <Ionicons
           name={isCredit ? "arrow-down-outline" : "arrow-up-outline"}
           size={18}

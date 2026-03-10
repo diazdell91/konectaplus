@@ -68,7 +68,7 @@ const PaymentMethodPicker = ({ selectedMethod, onSelect, hideWallet }: Props) =>
     if (selectedMethod?.type === "WALLET") {
       return (
         <>
-          <View style={[styles.iconWrap, { backgroundColor: "#EAF7F5" }]}>
+          <View style={[styles.iconWrap, { backgroundColor: COLORS.primary.tint }]}>
             <Ionicons name="wallet-outline" size={18} color={COLORS.primary.main} />
           </View>
           <View style={styles.cardInfo}>

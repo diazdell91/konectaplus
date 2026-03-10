@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   amountCardSelected: {
     borderColor: COLORS.primary.main,
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
   },
   amountCardPressed: {
     opacity: 0.75,

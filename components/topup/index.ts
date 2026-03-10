@@ -1,4 +1,3 @@
-export { default as ContactsHistoryScreen } from "../screens/TopupScreen";
 export { default as ContactsList } from "./contacts/ContactsList";
 export { default as TopupFooter } from "./footer/TopupFooter";
 export { default as HistoryList } from "./history/HistoryList";

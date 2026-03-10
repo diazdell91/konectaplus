@@ -22,7 +22,7 @@ const PickerWalletOption = ({ balance, isSelected, onPress }: Props) => (
       ]}
       onPress={onPress}
     >
-      <View style={[styles.iconWrap, { backgroundColor: "#EAF7F5" }]}>
+      <View style={[styles.iconWrap, { backgroundColor: COLORS.primary.tint }]}>
         <Ionicons name="wallet-outline" size={20} color={COLORS.primary.main} />
       </View>
       <View style={styles.rowText}>
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   rowSelected: {
     borderColor: COLORS.primary.main,
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
   },
   rowPressed: {
     backgroundColor: COLORS.background.secondary,

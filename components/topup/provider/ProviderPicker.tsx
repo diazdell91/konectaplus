@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   cardSelected: {
     borderColor: COLORS.primary.main,
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
   },
   cardPressed: {
     opacity: 0.8,

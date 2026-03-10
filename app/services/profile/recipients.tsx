@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: SPACING.sm,

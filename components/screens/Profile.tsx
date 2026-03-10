@@ -5,16 +5,19 @@ import {
   ProfileSection,
   SocialLinks,
 } from "@/components";
-import { Screen, ScreenHeader } from "@/components/ui";
+import { ScreenHeader } from "@/components/ui";
+import { COLORS } from "@/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ME, MeData } from "@/graphql/me";
-import { useAuth } from "@/context/AuthProvider";
+import { AuthContext } from "@/context/AuthProvider";
+import { useContext } from "react";
 import { SPACING } from "@/theme";
 import { useQuery } from "@apollo/client/react";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
 
 export default function ProfileScreen() {
-  const { logout } = useAuth();
+  const { logout } = useContext(AuthContext);
 
   const { data } = useQuery<MeData>(ME, { fetchPolicy: "cache-and-network" });
 
@@ -27,7 +30,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Screen safeArea edges={["top"]}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: COLORS.surface.primary }}>
       <ScreenHeader
         title={displayName}
         subtitle={subtitle}
@@ -128,7 +131,7 @@ export default function ProfileScreen() {
           />
         </ProfileSection>
       </ScrollView>
-    </Screen>
+    </SafeAreaView>
   );
 }
 

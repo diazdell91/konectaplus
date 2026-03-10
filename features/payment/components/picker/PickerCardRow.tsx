@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   rowSelected: {
     borderColor: COLORS.primary.main,
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
   },
   rowPressed: {
     backgroundColor: COLORS.background.secondary,
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     color: COLORS.text.secondary,
   },
   defaultBadge: {
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 3,

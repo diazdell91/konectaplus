@@ -1,141 +1,105 @@
-import { FontType } from "@/constants/Fonts";
-import { COLORS, TYPOGRAPHY } from "@/theme";
+import { COLORS, FONT_FAMILIES, TYPOGRAPHY, TypographyVariant } from "@/theme";
+import React from "react";
 import {
-  Text as DefaultText,
+  Text as RNText,
   TextProps as RNTextProps,
   StyleProp,
   TextStyle,
 } from "react-native";
 
-type Props = RNTextProps & {
-  children?: React.ReactNode;
-  color?: TextStyle["color"];
-  colorClass?: string;
-  bold?: boolean;
-  size?: TextStyle["fontSize"];
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+export type TextProps = RNTextProps & {
+  variant?: TypographyVariant;
+  color?: string;
   align?: TextStyle["textAlign"];
-  weigth?: TextStyle["fontWeight"];
-  padding?: TextStyle["padding"];
-  paddingHorizontal?: TextStyle["paddingHorizontal"];
-  paddingVertical?: TextStyle["paddingVertical"];
-  margin?: TextStyle["margin"];
-  marginHorizontal?: TextStyle["marginHorizontal"];
-  marginVertical?: TextStyle["marginVertical"];
-  fontFamily?: FontType;
+  uppercase?: boolean;
+  style?: StyleProp<TextStyle>;
+  children?: React.ReactNode;
+
+  // Shorthand variant props — convenientes para uso inline
   h1?: boolean;
   h2?: boolean;
   h3?: boolean;
   h4?: boolean;
-  caption?: boolean;
   body?: boolean;
+  bodyMedium?: boolean;
+  bodySemiBold?: boolean;
   button?: boolean;
   label?: boolean;
   input?: boolean;
-  title?: boolean;
-  subTitle?: boolean;
+  caption?: boolean;
   small?: boolean;
-  upercase?: boolean;
-  className?: string;
-  style?: StyleProp<TextStyle>;
+  overline?: boolean;
 };
 
-const Text = (props: Props) => {
-  const {
-    h1,
-    h2,
-    h3,
-    h4,
-    caption,
-    body,
-    button,
-    label,
-    input,
-    title,
-    subTitle,
-    small,
-    bold,
-    color,
-    colorClass,
-    size,
-    weigth,
-    padding,
-    paddingHorizontal,
-    paddingVertical,
-    margin,
-    marginHorizontal,
-    marginVertical,
-    fontFamily,
-    align,
-    children,
-    upercase,
-    style,
-    ...otherProps
-  } = props;
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
 
-  // Determine typography variant from props
-  let typographyStyle: TextStyle = {
-    ...TYPOGRAPHY.body,
-    color: COLORS.text.primary,
-  };
+const DEFAULT_COLORS: Partial<Record<TypographyVariant, string>> = {
+  label:    COLORS.text.secondary,
+  caption:  COLORS.text.secondary,
+  small:    COLORS.text.secondary,
+  overline: COLORS.text.secondary,
+};
 
-  if (h1) {
-    typographyStyle = { ...TYPOGRAPHY.h1, color: COLORS.text.primary };
-    if (upercase) typographyStyle.textTransform = "uppercase";
-  } else if (h2) {
-    typographyStyle = { ...TYPOGRAPHY.h2, color: COLORS.text.primary };
-  } else if (h3) {
-    typographyStyle = { ...TYPOGRAPHY.h3, color: COLORS.text.primary };
-  } else if (h4) {
-    typographyStyle = { ...TYPOGRAPHY.h4, color: COLORS.text.primary };
-  } else if (input) {
-    typographyStyle = { ...TYPOGRAPHY.input, color: COLORS.text.primary };
-  } else if (body) {
-    typographyStyle = { ...TYPOGRAPHY.body, color: COLORS.text.primary };
-  } else if (button) {
-    typographyStyle = { ...TYPOGRAPHY.button, color: COLORS.text.primary };
-  } else if (label) {
-    typographyStyle = {
-      ...TYPOGRAPHY.label,
-      color: COLORS.text.secondary,
-      paddingBottom: 6,
-    };
-  } else if (title) {
-    typographyStyle = { ...TYPOGRAPHY.body, color: COLORS.text.primary };
-  } else if (subTitle) {
-    typographyStyle = {
-      ...TYPOGRAPHY.body,
-      color: COLORS.text.primary,
-      paddingTop: 4,
-    };
-  } else if (caption) {
-    typographyStyle = { ...TYPOGRAPHY.caption, color: COLORS.text.secondary };
-  } else if (small) {
-    typographyStyle = { ...TYPOGRAPHY.small, color: COLORS.text.secondary };
-  }
+function resolveVariant(props: TextProps): TypographyVariant {
+  if (props.variant)     return props.variant;
+  if (props.h1)          return "h1";
+  if (props.h2)          return "h2";
+  if (props.h3)          return "h3";
+  if (props.h4)          return "h4";
+  if (props.bodySemiBold) return "bodySemiBold";
+  if (props.bodyMedium)  return "bodyMedium";
+  if (props.button)      return "button";
+  if (props.label)       return "label";
+  if (props.input)       return "input";
+  if (props.caption)     return "caption";
+  if (props.small)       return "small";
+  if (props.overline)    return "overline";
+  return "body";
+}
 
-  // Apply overrides
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
+
+const Text = ({
+  variant,
+  color,
+  align,
+  uppercase,
+  style,
+  children,
+  // shorthand booleans — consumed by resolveVariant, not forwarded to RNText
+  h1, h2, h3, h4,
+  body, bodyMedium, bodySemiBold,
+  button, label, input, caption, small, overline,
+  ...rest
+}: TextProps) => {
+  const resolvedVariant = resolveVariant({
+    variant, h1, h2, h3, h4,
+    body, bodyMedium, bodySemiBold,
+    button, label, input, caption, small, overline,
+  });
+
+  const base = TYPOGRAPHY[resolvedVariant];
+  const defaultColor = DEFAULT_COLORS[resolvedVariant] ?? COLORS.text.primary;
+
   const finalStyle: TextStyle = {
-    ...typographyStyle,
-    ...(color && { color }),
-    ...(size !== undefined && { fontSize: size }),
-    ...(weigth !== undefined && { fontWeight: weigth }),
-    ...(bold && { fontWeight: "700" }),
-    ...(upercase && { textTransform: "uppercase" }),
-    ...(align && { textAlign: align }),
-    ...(padding !== undefined && { padding }),
-    ...(paddingHorizontal !== undefined && { paddingHorizontal }),
-    ...(paddingVertical !== undefined && { paddingVertical }),
-    ...(margin !== undefined && { margin }),
-    ...(marginHorizontal !== undefined && { marginHorizontal }),
-    ...(marginVertical !== undefined && { marginVertical }),
-    ...(fontFamily && { fontFamily }),
-    ...(style as TextStyle),
+    ...base,
+    color: color ?? defaultColor,
+    ...(align    && { textAlign: align }),
+    ...(uppercase && { textTransform: "uppercase" as const }),
   };
 
   return (
-    <DefaultText style={finalStyle} {...otherProps}>
+    <RNText style={[finalStyle, style]} {...rest}>
       {children}
-    </DefaultText>
+    </RNText>
   );
 };
 

@@ -1,4 +1,4 @@
-import { COLORS } from "@/theme";
+import { BORDER_RADIUS, COLORS, COMPONENT_SIZES, FONT_FAMILIES, FONT_SIZES } from "@/theme";
 import Icon from "@expo/vector-icons/MaterialCommunityIcons";
 import React from "react";
 import {
@@ -10,7 +10,6 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -18,8 +17,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "success";
-type ButtonSize = "sm" | "md" | "lg";
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "success";
+export type ButtonSize = "sm" | "md" | "lg";
 
 type ButtonPropsParams = {
   title?: string;
@@ -36,99 +39,88 @@ type ButtonPropsParams = {
 
 export type ButtonProps = ButtonPropsParams & {
   style?: StyleProp<ViewStyle>;
-  fontStyle?: {
-    color?: string;
-    fontSize?: number;
-    fontWeight?: TextStyle["fontWeight"];
-  };
+  textStyle?: StyleProp<TextStyle>;
 };
 
-const DISABLED_BG = "#E5E7EB";
-const DISABLED_TEXT = "#9CA3AF";
+// ─────────────────────────────────────────────
+// Theme tokens
+// ─────────────────────────────────────────────
 
-function getHeights(size: ButtonSize) {
-  switch (size) {
-    case "sm":
-      return { height: 36, paddingHorizontal: 14, fontSize: 14, iconSize: 18 };
-    case "lg":
-      return { height: 56, paddingHorizontal: 18, fontSize: 18, iconSize: 22 };
-    case "md":
-      return { height: 48, paddingHorizontal: 16, fontSize: 16, iconSize: 20 };
-    default:
-      return { height: 56, paddingHorizontal: 18, fontSize: 18, iconSize: 22 };
-  }
-}
+const SIZE_MAP: Record<ButtonSize, { height: number; paddingHorizontal: number; fontSize: number; iconSize: number }> = {
+  sm: { height: COMPONENT_SIZES.button.heightSm, paddingHorizontal: 14, fontSize: FONT_SIZES.base, iconSize: 18 },
+  md: { height: COMPONENT_SIZES.button.height,   paddingHorizontal: 16, fontSize: FONT_SIZES.md,   iconSize: 20 },
+  lg: { height: COMPONENT_SIZES.button.height,   paddingHorizontal: 18, fontSize: FONT_SIZES.lg,   iconSize: 22 },
+};
 
-function getBgColor(variant: ButtonVariant, disabled?: boolean) {
-  if (disabled) return DISABLED_BG;
+const VARIANT_BG: Record<ButtonVariant, string> = {
+  primary:   COLORS.primary.main,
+  success:   COLORS.primary.dark,
+  secondary: COLORS.neutral.white,
+  outline:   "transparent",
+  ghost:     "transparent",
+};
 
-  switch (variant) {
-    case "primary":
-      return COLORS.primary.main;
-    case "success":
-      return COLORS.primary.light;
-    case "secondary":
-      return COLORS.neutral.white;
-    case "outline":
-    case "ghost":
-      return "transparent";
-    default:
-      return COLORS.primary.main;
-  }
-}
+const VARIANT_TEXT: Record<ButtonVariant, string> = {
+  primary:   COLORS.text.inverse,
+  success:   COLORS.text.inverse,
+  secondary: COLORS.primary.main,
+  outline:   COLORS.primary.main,
+  ghost:     COLORS.primary.main,
+};
 
-function getBorder(variant: ButtonVariant, disabled?: boolean) {
-  if (disabled) return { borderWidth: 0, borderColor: "transparent" };
+const VARIANT_BORDER: Record<ButtonVariant, { borderWidth: number; borderColor: string }> = {
+  primary:   { borderWidth: 0, borderColor: "transparent" },
+  success:   { borderWidth: 0, borderColor: "transparent" },
+  secondary: { borderWidth: 1, borderColor: COLORS.border.light },
+  outline:   { borderWidth: 1, borderColor: COLORS.border.medium },
+  ghost:     { borderWidth: 0, borderColor: "transparent" },
+};
 
-  switch (variant) {
-    case "secondary":
-    case "outline":
-      return { borderWidth: 1, borderColor: COLORS.light.border };
-    default:
-      return { borderWidth: 0, borderColor: "transparent" };
-  }
-}
+const DISABLED_BG   = COLORS.neutral.gray200;
+const DISABLED_TEXT = COLORS.neutral.gray400;
 
-function getTextColor(
-  variant: ButtonVariant,
-  disabled?: boolean,
-  override?: string,
-) {
-  if (override) return override;
-  if (disabled) return DISABLED_TEXT;
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
 
-  switch (variant) {
-    case "secondary":
-    case "outline":
-    case "ghost":
-      return COLORS.primary.main;
-    default:
-      return COLORS.neutral.white;
-  }
-}
-
-export function Button(props: ButtonProps) {
-  const {
-    style,
-    title,
-    loading,
-    disabled,
-    icon,
-    variant = "primary",
-    size = "lg",
-    fullWidth = true,
-    onPress,
-    fontStyle,
-    accessibilityRole,
-    accessibilityLabel,
-  } = props;
-
+export function Button({
+  style,
+  textStyle,
+  title,
+  loading,
+  disabled,
+  icon,
+  variant = "primary",
+  size = "lg",
+  fullWidth = true,
+  onPress,
+  accessibilityRole,
+  accessibilityLabel,
+}: ButtonProps) {
   const isDisabled = !!disabled || !!loading;
-  const { height, paddingHorizontal, fontSize, iconSize } = getHeights(size);
+  const { height, paddingHorizontal, fontSize, iconSize } = SIZE_MAP[size];
 
-  const backgroundColor = getBgColor(variant, isDisabled);
-  const { borderWidth, borderColor } = getBorder(variant, isDisabled);
-  const textColor = getTextColor(variant, isDisabled, fontStyle?.color);
+  const backgroundColor = isDisabled ? DISABLED_BG : VARIANT_BG[variant];
+  const textColor       = isDisabled ? DISABLED_TEXT : VARIANT_TEXT[variant];
+  const { borderWidth, borderColor } = isDisabled
+    ? { borderWidth: 0, borderColor: "transparent" }
+    : VARIANT_BORDER[variant];
+
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    if (isDisabled) return;
+    scale.value = withSpring(0.96, { damping: 18, stiffness: 260, mass: 0.35 });
+  };
+
+  const handlePressOut = () => {
+    if (isDisabled) return;
+    scale.value = withTiming(1, { duration: 120 });
+  };
 
   const containerStyle: ViewStyle = {
     alignSelf: fullWidth ? "stretch" : "center",
@@ -138,65 +130,45 @@ export function Button(props: ButtonProps) {
   const buttonStyle: ViewStyle = {
     height,
     paddingHorizontal,
-    borderRadius: 18,
+    borderRadius: BORDER_RADIUS.xl,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     backgroundColor,
     borderWidth,
     borderColor,
-    opacity: isDisabled ? 0.9 : 1,
+    opacity: isDisabled ? 0.6 : 1,
   };
 
   const labelStyle: TextStyle = {
-    fontSize: fontStyle?.fontSize ?? fontSize,
-    fontWeight: fontStyle?.fontWeight ?? "600",
+    fontFamily: FONT_FAMILIES.semiBold,
+    fontSize,
+    fontWeight: "600",
     color: textColor,
   };
 
-  // ✅ Reanimated: scale press effect
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    if (isDisabled) return;
-    scale.value = withSpring(0.96, {
-      damping: 18,
-      stiffness: 260,
-      mass: 0.35,
-    });
-  };
-
-  const handlePressOut = () => {
-    if (isDisabled) return;
-    scale.value = withTiming(1, { duration: 120 });
-  };
-
   return (
-    <View style={[containerStyle, style as any]}>
+    <View style={[containerStyle, style as ViewStyle]}>
       <Animated.View style={animatedStyle}>
         <Pressable
           onPress={isDisabled ? undefined : onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           accessibilityRole={(accessibilityRole as any) ?? "button"}
-          accessibilityLabel={accessibilityLabel || title}
+          accessibilityLabel={accessibilityLabel ?? title}
           style={({ pressed }) => [
             buttonStyle,
-            !isDisabled && pressed ? { opacity: 0.85 } : null,
+            !isDisabled && pressed && { opacity: 0.85 },
           ]}
         >
           {loading ? (
-            <ActivityIndicator color={textColor} />
+            <ActivityIndicator color={textColor} size="small" />
           ) : icon ? (
             <Icon name={icon} size={iconSize} color={textColor} />
           ) : null}
 
-          {!!title && <Text style={labelStyle}>{title}</Text>}
+          {!!title && <Text style={[labelStyle, textStyle]}>{title}</Text>}
         </Pressable>
       </Animated.View>
     </View>

@@ -52,7 +52,7 @@ function sortProducts(items: TopupProduct[]): TopupProduct[] {
 
 const BADGE_COLORS: Record<string, string> = {
   NEW: COLORS.primary.main,
-  OFFER: COLORS.secondary.main,
+  OFFER: COLORS.accent.main,
   HOT: "#EF4444",
   POPULAR: "#8B5CF6",
 };
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   cardSelected: {
     borderColor: COLORS.primary.main,
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
   },
   cardPressed: {
     opacity: 0.85,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: COLORS.secondary.light,
+    backgroundColor: COLORS.accent.soft,
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 2,

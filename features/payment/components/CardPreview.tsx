@@ -164,7 +164,7 @@ export default CardPreview;
 // ---------------------------------------------------------------------------
 
 const CARD_BG = COLORS.primary.main;
-const CARD_BG_DARK = "#076b58";
+const CARD_BG_DARK = COLORS.primary.dark;
 
 const styles = StyleSheet.create({
   wrapper: {

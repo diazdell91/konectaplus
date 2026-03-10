@@ -16,7 +16,7 @@ import {
   HeroBanner,
   HeroBannersData,
 } from "@/graphql/heroBanners";
-import { FONT_FAMILIES } from "@/theme/typography";
+import { COLORS, FONT_FAMILIES } from "@/theme";
 
 const SLIDE_MARGIN = 16;
 const SLIDE_GAP = 12;
@@ -51,7 +51,7 @@ const HomeHeroCarousel = ({ onPressSlide }: HomeHeroCarouselProps) => {
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator color="#3B82F6" />
+        <ActivityIndicator color={COLORS.primary.main} />
       </View>
     );
   }
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     gap: SLIDE_GAP,
   },
   slide: {
-    backgroundColor: "#3B82F6",
+    backgroundColor: COLORS.primary.main,
     borderRadius: 30,
     padding: 22,
     flexDirection: "row",
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#D1D5DB",
   },
   dotActive: {
-    backgroundColor: "#3B82F6",
+    backgroundColor: COLORS.primary.main,
     width: 20,
     borderRadius: 4,
   },

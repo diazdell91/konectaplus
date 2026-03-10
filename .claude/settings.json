@@ -1,7 +1,21 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx expo install expo-camera)"
+      "Bash(npx expo install expo-camera)",
+      "Bash(sed -i '' 's/import { COLORS, FONTS } from \"\"@\\\\/theme\"\";/import { COLORS } from \"\"@\\\\/theme\"\";\\\\nimport { FONT_FAMILIES, TYPOGRAPHY } from \"\"@\\\\/theme\"\";/' /Users/dayrondiazdell/Developer/konectaplus/components/ui/PhoneInput.tsx)",
+      "Bash(sed -i '' 's/{ marginVertical: 8, marginStart: 4, \\\\.\\\\.\\\\.FONTS\\\\.inputLabel }/{ marginVertical: 8, marginStart: 4, ...TYPOGRAPHY.label }/' /Users/dayrondiazdell/Developer/konectaplus/components/ui/PhoneInput.tsx)",
+      "Bash(sed -i '' 's/color={COLORS\\\\.light\\\\.gray}/color={COLORS.neutral.gray400}/' /Users/dayrondiazdell/Developer/konectaplus/components/ui/PhoneInput.tsx)",
+      "Bash(sed -i '' 's/backgroundColor: COLORS\\\\.light\\\\.surface/backgroundColor: COLORS.surface.tertiary/' /Users/dayrondiazdell/Developer/konectaplus/components/ui/PhoneInput.tsx)",
+      "Bash(sed -i '' 's/\\\\.\\\\.\\\\.FONTS\\\\.boddy/...TYPOGRAPHY.body/g' /Users/dayrondiazdell/Developer/konectaplus/components/ui/PhoneInput.tsx)",
+      "Bash(for f in /Users/dayrondiazdell/Developer/konectaplus/features/payment/components/CardInputSection.tsx /Users/dayrondiazdell/Developer/konectaplus/components/payment/CardInputSection.tsx)",
+      "Bash(do)",
+      "Bash(sed -i '' 's/import { COLORS, FONT_FAMILIES, SIZES, SPACING } from \"\"@\\\\/theme\"\";/import { BORDER_RADIUS, COLORS, COMPONENT_SIZES, FONT_FAMILIES, SPACING } from \"\"@\\\\/theme\"\";/' \"$f\")",
+      "Bash(sed -i '' 's/fontSize: SIZES\\\\.text/fontSize: COMPONENT_SIZES.input.fontSize/' \"$f\")",
+      "Bash(sed -i '' 's/borderRadius: SIZES\\\\.inputRadius/borderRadius: BORDER_RADIUS.md/' \"$f\")",
+      "Bash(sed -i '' 's/borderWidth: SIZES\\\\.inputBorder/borderWidth: COMPONENT_SIZES.input.borderWidth/' \"$f\")",
+      "Bash(sed -i '' 's/borderColor: COLORS\\\\.light\\\\.border/borderColor: COLORS.border.light/' \"$f\")",
+      "Bash(sed -i '' 's/backgroundColor: COLORS\\\\.light\\\\.grey06/backgroundColor: COLORS.surface.tertiary/' \"$f\")",
+      "Bash(done)"
     ]
   }
 }

@@ -1,11 +1,12 @@
+import { COLORS } from "@/theme";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import React from "react";
 import { DynamicColorIOS, Platform } from "react-native";
 
 const activeTint =
   Platform.OS === "ios"
-    ? DynamicColorIOS({ light: "#09816c", dark: "#4fbe9f" })
-    : "#09816c";
+    ? DynamicColorIOS({ light: COLORS.primary.main, dark: COLORS.primary.light })
+    : COLORS.primary.main;
 
 export default function TabLayout() {
   return (
@@ -19,11 +20,6 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Icon sf="arrow.up.circle.fill" md="arrow_upward" />
         <NativeTabs.Trigger.Label>Recargas</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="calls/index">
-        <NativeTabs.Trigger.Icon sf="phone.fill" md="call" />
-        <NativeTabs.Trigger.Label>Llamadas</NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
-
       <NativeTabs.Trigger name="profile/index">
         <NativeTabs.Trigger.Icon sf="person.fill" md="account_circle" />
         <NativeTabs.Trigger.Label>Perfil</NativeTabs.Trigger.Label>

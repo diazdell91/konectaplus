@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   chipSelected: {
     borderColor: COLORS.primary.main,
-    backgroundColor: "#EAF7F5",
+    backgroundColor: COLORS.primary.tint,
   },
   chipPressed: {
     opacity: 0.7,

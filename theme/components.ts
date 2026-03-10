@@ -1,224 +1,212 @@
-/**
- * Design System Components - Based on "Revisar y confirmar" reference screen
- * Consistent component styles with flat design principles
- */
-
 import { COLORS } from "./colors";
 import { SPACING } from "./spacing";
-import { TYPOGRAPHY } from "./typography";
+import { FONT_SIZES } from "./typography";
 
-// Border radius system - Based on reference screen
+// ─────────────────────────────────────────────
+// Border radius
+// ─────────────────────────────────────────────
+
 export const BORDER_RADIUS = {
   none: 0,
-  sm: 6, // Small elements
-  md: 12, // Input fields (from reference)
-  lg: 16, // Cards and containers
-  xl: 24, // Large containers
-  full: 999, // Pills/badges
+  sm: 6,
+  md: 10,
+  lg: 14,
+  xl: 20,
+  xxl: 24,
+  full: 999,
 } as const;
 
+// ─────────────────────────────────────────────
+// Component sizing tokens
+// ─────────────────────────────────────────────
+
+export const COMPONENT_SIZES = {
+  button: {
+    height: 52,
+    heightSm: 44,
+    radius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+  },
+  input: {
+    height: 56,
+    heightSm: 44,
+    radius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    fontSize: FONT_SIZES.md,
+  },
+  icon: {
+    xs: 16,
+    sm: 20,
+    md: 24,
+    lg: 32,
+    xl: 48,
+  },
+  avatar: {
+    sm: 32,
+    md: 40,
+    lg: 56,
+  },
+  touchTarget: SPACING.touch.comfortable,
+} as const;
+
+// ─────────────────────────────────────────────
 // Component style definitions
+// ─────────────────────────────────────────────
+
 export const COMPONENT_STYLES = {
-  // Button styles - Based on reference screen buttons
   button: {
     primary: {
       backgroundColor: COLORS.primary.main,
-      borderRadius: BORDER_RADIUS.lg, // Reduced from 32px to match reference
+      borderRadius: BORDER_RADIUS.lg,
       paddingVertical: SPACING.component.buttonPaddingVertical,
       paddingHorizontal: SPACING.component.buttonPaddingHorizontal,
-      minHeight: 48,
+      minHeight: COMPONENT_SIZES.button.height,
       justifyContent: "center" as const,
       alignItems: "center" as const,
-      // NO SHADOWS - flat design
     },
-
     secondary: {
       backgroundColor: COLORS.neutral.white,
       borderRadius: BORDER_RADIUS.lg,
       paddingVertical: SPACING.component.buttonPaddingVertical,
       paddingHorizontal: SPACING.component.buttonPaddingHorizontal,
-      minHeight: 48,
+      minHeight: COMPONENT_SIZES.button.height,
       borderWidth: 1,
       borderColor: COLORS.border.light,
       justifyContent: "center" as const,
       alignItems: "center" as const,
-      // NO SHADOWS
     },
-
     outline: {
       backgroundColor: "transparent",
       borderRadius: BORDER_RADIUS.lg,
       paddingVertical: SPACING.component.buttonPaddingVertical,
       paddingHorizontal: SPACING.component.buttonPaddingHorizontal,
-      minHeight: 48,
+      minHeight: COMPONENT_SIZES.button.height,
       borderWidth: 1,
       borderColor: COLORS.border.medium,
       justifyContent: "center" as const,
       alignItems: "center" as const,
     },
+    ghost: {
+      backgroundColor: "transparent",
+      borderRadius: BORDER_RADIUS.lg,
+      paddingVertical: SPACING.component.buttonPaddingVertical,
+      paddingHorizontal: SPACING.component.buttonPaddingHorizontal,
+      minHeight: COMPONENT_SIZES.button.height,
+      justifyContent: "center" as const,
+      alignItems: "center" as const,
+    },
   },
 
-  // Input styles - Based on reference screen
   input: {
     container: {
       backgroundColor: COLORS.surface.primary,
-      borderRadius: BORDER_RADIUS.md, // 12px from reference
+      borderRadius: BORDER_RADIUS.md,
       borderWidth: 1,
-      borderColor: COLORS.border.light, // Light border from reference
+      borderColor: COLORS.border.light,
       paddingHorizontal: SPACING.component.inputPaddingHorizontal,
       paddingVertical: SPACING.component.inputPaddingVertical,
-      minHeight: 48,
-      // NO SHADOWS - flat design
+      minHeight: COMPONENT_SIZES.input.height,
     },
-
     focused: {
-      borderColor: COLORS.primary.main,
+      borderColor: COLORS.border.focus,
     },
-
     error: {
-      borderColor: COLORS.semantic.error,
+      borderColor: COLORS.border.error,
     },
-
     disabled: {
       backgroundColor: COLORS.neutral.gray50,
       borderColor: COLORS.border.light,
     },
   },
 
-  // Card styles - Based on reference screen cards
   card: {
     default: {
-      backgroundColor: COLORS.surface.primary,
-      borderRadius: BORDER_RADIUS.lg, // 16px for cards
-      padding: SPACING.component.cardPadding,
-      borderWidth: 1,
-      borderColor: COLORS.border.light,
-      // NO SHADOWS - completely flat design like reference
-    },
-
-    elevated: {
       backgroundColor: COLORS.surface.primary,
       borderRadius: BORDER_RADIUS.lg,
       padding: SPACING.component.cardPadding,
       borderWidth: 1,
       borderColor: COLORS.border.light,
-      // Still NO SHADOWS - reference screen is completely flat
     },
-
+    section: {
+      backgroundColor: COLORS.surface.primary,
+      borderRadius: BORDER_RADIUS.xl,
+      padding: SPACING.component.cardPadding,
+      borderWidth: 1,
+      borderColor: COLORS.border.light,
+    },
     warning: {
-      backgroundColor: "#FEF3C7", // Warning card from reference
+      backgroundColor: COLORS.semantic.warningTint,
       borderRadius: BORDER_RADIUS.md,
       padding: SPACING.component.cardPadding,
       borderWidth: 1,
-      borderColor: "#F59E0B",
+      borderColor: COLORS.semantic.warning,
+    },
+    success: {
+      backgroundColor: COLORS.semantic.successTint,
+      borderRadius: BORDER_RADIUS.md,
+      padding: SPACING.component.cardPadding,
+      borderWidth: 1,
+      borderColor: COLORS.primary.main,
+    },
+    error: {
+      backgroundColor: COLORS.semantic.errorTint,
+      borderRadius: BORDER_RADIUS.md,
+      padding: SPACING.component.cardPadding,
+      borderWidth: 1,
+      borderColor: COLORS.semantic.error,
     },
   },
 
-  // Header styles
-  header: {
-    container: {
-      backgroundColor: COLORS.surface.primary,
-      paddingHorizontal: SPACING.component.screenPadding,
-      paddingVertical: SPACING.md,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.border.light,
-      // NO SHADOWS
-    },
-  },
-
-  // Modal/Sheet styles - Based on reference modal
-  modal: {
-    container: {
-      backgroundColor: COLORS.surface.primary,
-      borderTopLeftRadius: BORDER_RADIUS.xl,
-      borderTopRightRadius: BORDER_RADIUS.xl,
-      paddingHorizontal: SPACING.component.screenPadding,
-      paddingTop: SPACING.lg,
-      // NO SHADOWS - flat design
-    },
-
-    backdrop: {
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-    },
-  },
-
-  // List item styles
-  listItem: {
-    container: {
-      backgroundColor: COLORS.surface.primary,
-      paddingHorizontal: SPACING.component.listItemPadding,
-      paddingVertical: SPACING.component.listItemPadding,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.border.light,
-      minHeight: 56,
-      // NO SHADOWS
-    },
-  },
-
-  // Chip/Badge styles - Based on reference chips
   chip: {
     default: {
       backgroundColor: COLORS.neutral.gray100,
       borderRadius: BORDER_RADIUS.full,
       paddingHorizontal: SPACING.md,
       paddingVertical: SPACING.xs,
-      // NO SHADOWS
     },
-
     selected: {
-      backgroundColor: COLORS.primary.main,
+      backgroundColor: COLORS.primary.tint,
       borderRadius: BORDER_RADIUS.full,
       paddingHorizontal: SPACING.md,
       paddingVertical: SPACING.xs,
+      borderWidth: 1,
+      borderColor: COLORS.primary.main,
     },
   },
 
-  // Divider styles
   divider: {
     horizontal: {
       height: 1,
       backgroundColor: COLORS.border.light,
     },
-
     vertical: {
       width: 1,
       backgroundColor: COLORS.border.light,
     },
   },
-} as const;
 
-// Size system
-export const SIZES = {
-  // Legacy sizes (keep for backward compatibility)
-  base: SPACING.sm,
-  font: SPACING.sm,
-  radius: BORDER_RADIUS.lg,
-  padding: SPACING.sm,
+  modal: {
+    container: {
+      backgroundColor: COLORS.surface.primary,
+      borderTopLeftRadius: BORDER_RADIUS.xxl,
+      borderTopRightRadius: BORDER_RADIUS.xxl,
+      paddingHorizontal: SPACING.component.screenPadding,
+      paddingTop: SPACING.lg,
+    },
+    backdrop: {
+      backgroundColor: COLORS.background.overlay,
+    },
+  },
 
-  // Font sizes
-  h1: TYPOGRAPHY.h1.fontSize,
-  h2: TYPOGRAPHY.h2.fontSize,
-  h3: TYPOGRAPHY.h3.fontSize,
-  h4: TYPOGRAPHY.h4.fontSize,
-  h5: TYPOGRAPHY.body.fontSize,
-  text: TYPOGRAPHY.body.fontSize,
-  caption: TYPOGRAPHY.caption.fontSize,
-  button: TYPOGRAPHY.button.fontSize,
-  label: TYPOGRAPHY.label.fontSize,
-  title: TYPOGRAPHY.body.fontSize,
-
-  // Component sizes
-  buttonHeight: 48, // Reduced from 56px to match reference
-  buttonRadius: BORDER_RADIUS.md, // Reduced from 32px to match reference
-  buttonBorder: 1,
-
-  inputHeight: 56, // Reduced from 48 to match CardField design
-  inputRadius: BORDER_RADIUS.md,
-  inputBorder: 1,
-
-  // Touch targets
-  touchableWidth: SPACING.touch.comfortableTarget,
-  touchableHeight: SPACING.touch.comfortableTarget,
+  screen: {
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background.secondary,
+    },
+    content: {
+      paddingHorizontal: SPACING.component.screenPadding,
+    },
+  },
 } as const;
 
 export default COMPONENT_STYLES;

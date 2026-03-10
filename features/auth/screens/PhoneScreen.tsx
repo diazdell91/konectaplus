@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PhoneFooter from "../components/phone/PhoneFooter";
 import PhoneHeader from "../components/phone/PhoneHeader";
 import PhoneHero from "../components/phone/PhoneHero";
-import PhoneInputCard from "../components/phone/PhoneInputCard";
+import { PhoneInputCard } from "@/components/ui";
 import { usePhoneEntry } from "../hooks/usePhoneEntry";
 
 const PhoneScreen = () => {

@@ -1,36 +1,55 @@
-// components/ui/Input.tsx
-import { COLORS, SIZES, SPACING } from "@/theme";
+import {
+  BORDER_RADIUS,
+  COLORS,
+  COMPONENT_SIZES,
+  FONT_FAMILIES,
+  FONT_SIZES,
+  SPACING,
+} from "@/theme";
 import Icon from "@expo/vector-icons/MaterialCommunityIcons";
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import {
   Pressable,
+  StyleSheet,
   TextInput as RNTextInput,
   TextInputProps as RNTextInputProps,
-  StyleSheet,
   View,
 } from "react-native";
 import Text from "./Text";
 
-type InputSize = "sm" | "md" | "lg";
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
 
-type InputPropsParams = {
+export type InputSize = "sm" | "md" | "lg";
+
+type InputOwnProps = {
   label?: string;
+  helperText?: string;
+  error?: string;
+  size?: InputSize;
   iconLeft?: React.ComponentProps<typeof Icon>["name"];
   iconRight?: React.ComponentProps<typeof Icon>["name"];
   onPressRight?: () => void;
   onLeftIconPress?: () => void;
-  helperText?: string;
-  error?: string;
-  size?: InputSize;
   showPasswordToggle?: boolean;
 };
 
-export type InputProps = InputPropsParams & RNTextInputProps;
+export type InputProps = InputOwnProps & RNTextInputProps;
+
+// ─────────────────────────────────────────────
+// Size tokens
+// ─────────────────────────────────────────────
+
+const SIZE_HEIGHT: Record<InputSize, number> = {
+  sm: 44,
+  md: COMPONENT_SIZES.input.heightSm,
+  lg: COMPONENT_SIZES.input.height,
+};
+
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
 
 const Input = forwardRef<RNTextInput, InputProps>((props, ref) => {
   const {
@@ -46,7 +65,7 @@ const Input = forwardRef<RNTextInput, InputProps>((props, ref) => {
     size = "md",
     secureTextEntry = false,
     showPasswordToggle = false,
-    ...otherProps
+    ...rest
   } = props;
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -54,52 +73,50 @@ const Input = forwardRef<RNTextInput, InputProps>((props, ref) => {
 
   useImperativeHandle(ref, () => innerRef.current as RNTextInput);
 
-  const getHeight = () => {
-    switch (size) {
-      case "sm":
-        return 36;
-      case "md":
-        return SIZES.inputHeight; // 44px
-      case "lg":
-        return 52;
-      default:
-        return SIZES.inputHeight;
-    }
-  };
-
-  const height = getHeight();
-
-  // Determine if we should show password toggle
   const isPassword = secureTextEntry || showPasswordToggle;
-  const shouldShowPasswordToggle = isPassword && showPasswordToggle;
+  const showToggle = isPassword && showPasswordToggle;
 
-  // Get the right icon
-  const getRightIcon = () => {
-    if (shouldShowPasswordToggle) {
-      return isPasswordVisible ? "eye-off" : "eye";
-    }
-    return iconRight;
-  };
+  const rightIconName: React.ComponentProps<typeof Icon>["name"] | undefined =
+    showToggle ? (isPasswordVisible ? "eye-off" : "eye") : iconRight;
 
-  // Get the right icon press handler
-  const getRightIconPress = () => {
-    if (shouldShowPasswordToggle) {
-      return () => setIsPasswordVisible(!isPasswordVisible);
-    }
-    return onPressRight;
-  };
+  const handleRightPress = showToggle
+    ? () => setIsPasswordVisible((v) => !v)
+    : onPressRight;
 
-  const rightIconName = getRightIcon();
-  const rightIconPressHandler = getRightIconPress();
+  const hasError = !!error;
+  const height = SIZE_HEIGHT[size];
+
+  const containerBorderColor = hasError
+    ? COLORS.border.error
+    : COLORS.border.light;
 
   return (
-    <View style={styles.container}>
-      {!!label && <Text style={styles.label}>{label}</Text>}
+    <View style={styles.wrapper}>
+      {!!label && (
+        <Text label style={styles.label}>
+          {label}
+        </Text>
+      )}
 
-      <View style={[styles.inputContainer, { height }]}>
+      <View
+        style={[
+          styles.inputContainer,
+          { height, borderColor: containerBorderColor },
+          !editable && styles.inputDisabled,
+          style,
+        ]}
+      >
         {iconLeft && (
-          <Pressable onPress={onLeftIconPress} style={styles.iconLeft}>
-            <Icon name={iconLeft} size={20} color={COLORS.neutral.gray400} />
+          <Pressable
+            onPress={onLeftIconPress}
+            style={styles.iconWrap}
+            hitSlop={8}
+          >
+            <Icon
+              name={iconLeft}
+              size={COMPONENT_SIZES.icon.sm}
+              color={COLORS.neutral.gray400}
+            />
           </Pressable>
         )}
 
@@ -108,30 +125,38 @@ const Input = forwardRef<RNTextInput, InputProps>((props, ref) => {
           style={[
             styles.input,
             iconLeft && styles.inputWithLeftIcon,
-            (rightIconName || shouldShowPasswordToggle) &&
-              styles.inputWithRightIcon,
+            rightIconName && styles.inputWithRightIcon,
           ]}
-          placeholder={otherProps.placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={COLORS.neutral.gray400}
           editable={editable}
           secureTextEntry={isPassword && !isPasswordVisible}
-          {...otherProps}
+          {...rest}
         />
 
-        {(rightIconName || shouldShowPasswordToggle) && (
-          <Pressable onPress={rightIconPressHandler} style={styles.iconRight}>
+        {rightIconName && (
+          <Pressable
+            onPress={handleRightPress}
+            style={styles.iconWrap}
+            hitSlop={8}
+          >
             <Icon
-              name={rightIconName || "eye"}
-              size={20}
+              name={rightIconName}
+              size={COMPONENT_SIZES.icon.sm}
               color={COLORS.neutral.gray400}
             />
           </Pressable>
         )}
       </View>
 
-      {!!error && <Text style={styles.errorText}>{error}</Text>}
-      {!!helperText && !error && (
-        <Text style={styles.helperText}>{helperText}</Text>
+      {hasError && (
+        <Text small style={styles.errorText}>
+          {error}
+        </Text>
+      )}
+      {!!helperText && !hasError && (
+        <Text small style={styles.helperText}>
+          {helperText}
+        </Text>
       )}
     </View>
   );
@@ -139,32 +164,37 @@ const Input = forwardRef<RNTextInput, InputProps>((props, ref) => {
 
 Input.displayName = "Input";
 
+export default Input;
+
+// ─────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  container: {
-    marginTop: SPACING.xs,
+  wrapper: {
+    gap: SPACING.xs,
   },
   label: {
-    fontFamily: "Montserrat-Medium",
-    fontSize: 14,
-    color: COLORS.text.primary,
-    marginBottom: SPACING.xs,
-    marginLeft: 4,
+    marginLeft: 2,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.light.grey06,
-    borderWidth: 1,
-    borderColor: COLORS.light.border,
-    borderRadius: SIZES.inputRadius,
-    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.surface.tertiary,
+    borderWidth: COMPONENT_SIZES.input.borderWidth,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.component.inputPaddingHorizontal,
+  },
+  inputDisabled: {
+    backgroundColor: COLORS.neutral.gray50,
+    opacity: 0.6,
   },
   input: {
     flex: 1,
-    fontFamily: "Montserrat-Regular",
-    fontSize: 16,
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: FONT_SIZES.md,
     color: COLORS.text.primary,
-    paddingVertical: 0, // Remove default padding for better vertical centering
+    paddingVertical: 0,
   },
   inputWithLeftIcon: {
     marginLeft: SPACING.sm,
@@ -172,28 +202,16 @@ const styles = StyleSheet.create({
   inputWithRightIcon: {
     marginRight: SPACING.sm,
   },
-  iconLeft: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  iconRight: {
+  iconWrap: {
     justifyContent: "center",
     alignItems: "center",
   },
   errorText: {
-    fontFamily: "Montserrat-Medium",
-    fontSize: 12,
     color: COLORS.semantic.error,
-    marginTop: 4,
-    marginLeft: 4,
+    marginLeft: 2,
   },
   helperText: {
-    fontFamily: "Montserrat-Regular",
-    fontSize: 12,
     color: COLORS.text.secondary,
-    marginTop: 4,
-    marginLeft: 4,
+    marginLeft: 2,
   },
 });
-
-export default Input;

@@ -1,4 +1,5 @@
 import { Text } from "@/components/ui";
+import { COLORS } from "@/theme";
 import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet } from "react-native";
@@ -14,7 +15,7 @@ const PhoneHeader = () => (
       style={{ width: 156, height: 68 }}
       contentFit="contain"
     />
-    <Text size={14} fontFamily="Montserrat-Bold" color="#333">
+    <Text bodyMedium color={COLORS.text.tertiary} align="center">
       Porque la familia siempre debe estar conectada.
     </Text>
   </Animated.View>

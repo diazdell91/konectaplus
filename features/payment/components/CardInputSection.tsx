@@ -5,7 +5,7 @@ import CardTypeIndicator, {
   CardNetwork,
 } from "@/features/payment/components/CardTypeIndicator";
 import { Input, Text } from "@/components/ui";
-import { COLORS, FONT_FAMILIES, SIZES, SPACING } from "@/theme";
+import { BORDER_RADIUS, COLORS, COMPONENT_SIZES, FONT_FAMILIES, SPACING } from "@/theme";
 import { CardField } from "@stripe/stripe-react-native";
 import React from "react";
 import { StyleSheet, Text as RNText, View } from "react-native";
@@ -82,7 +82,7 @@ const CardInputSection = ({
           onCardChange={onCardChange}
           cardStyle={{
             fontFamily: "Arial-BoldMT",
-            fontSize: SIZES.text,
+            fontSize: COMPONENT_SIZES.input.fontSize,
           }}
           onFocus={(field) => onFieldFocus(field as FieldName)}
         />
@@ -121,11 +121,11 @@ const styles = StyleSheet.create({
   },
   cardField: {
     width: "100%",
-    borderRadius: SIZES.inputRadius,
+    borderRadius: BORDER_RADIUS.md,
     height: 52,
-    borderWidth: SIZES.inputBorder,
-    borderColor: COLORS.light.border,
-    backgroundColor: COLORS.light.grey06,
+    borderWidth: COMPONENT_SIZES.input.borderWidth,
+    borderColor: COLORS.border.light,
+    backgroundColor: COLORS.surface.tertiary,
   },
   dividerRow: {
     flexDirection: "row",

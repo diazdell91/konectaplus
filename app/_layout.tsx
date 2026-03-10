@@ -1,15 +1,3 @@
-import { COLORS } from "@/theme/colors";
-import { FONT_FAMILIES } from "@/theme/typography";
-import { SplashScreen, Stack } from "expo-router";
-import {
-  configureReanimatedLogger,
-  ReanimatedLogLevel,
-} from "react-native-reanimated";
-import { Toaster } from "sonner-native";
-
-// Native imports
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-
 import { ApolloProvider } from "@/apollo/apolloProvider";
 import { FONTS } from "@/constants/Fonts";
 import { AppSettingsProvider } from "@/context/AppSettings";
@@ -17,46 +5,60 @@ import { AuthProvider } from "@/context/AuthProvider";
 import { PhoneCountryProvider } from "@/context/PhoneCountry";
 import { TopupCartProvider } from "@/context/TopupCartContext";
 import { selectIsAuthenticated, selectIsHydrated, useAuthStore } from "@/store/useAuthStore";
+import { BORDER_RADIUS, COLORS, FONT_FAMILIES, FONT_SIZES, SPACING } from "@/theme";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import * as Haptics from "expo-haptics";
 import { PressablesConfig } from "pressto";
+import React from "react";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
+import { Toaster } from "sonner-native";
 
-const STRIPE_PUBLISHABLE_KEY =
-  process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
+// ─────────────────────────────────────────────
+// Reanimated — supress pressto false-positive warnings
+// ─────────────────────────────────────────────
 
-// Disable Reanimated strict mode warnings
-// These warnings are triggered by the pressto library's PressableScale component
-// which uses patterns that are technically correct but trigger strict mode warnings
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
-  strict: false, // Disable strict mode to suppress false-positive warnings
+  strict: false,
 });
 
-function AppContent() {
-  const [loaded] = useFonts({ ...FONTS });
-  const isAuthenticated = useAuthStore(selectIsAuthenticated);
-  const isHydrated = useAuthStore(selectIsHydrated);
+// ─────────────────────────────────────────────
+// Config
+// ─────────────────────────────────────────────
 
-  if (!isHydrated || !loaded) {
+const STRIPE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
+
+// ─────────────────────────────────────────────
+// App content — reads auth state from store (no provider re-renders)
+// ─────────────────────────────────────────────
+
+function AppContent() {
+  const [fontsLoaded] = useFonts({ ...FONTS });
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const isHydrated      = useAuthStore(selectIsHydrated);
+
+  if (!isHydrated || !fontsLoaded) {
     SplashScreen.preventAutoHideAsync();
     return null;
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <Stack screenOptions={{ headerShown: false }}>
+      {/* Auth flow */}
       <Stack.Protected guard={!isAuthenticated}>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" />
       </Stack.Protected>
+
+      {/* Main app */}
       <Stack.Protected guard={isAuthenticated}>
-        <Stack.Screen name="(tabs)" options={{}} />
+        <Stack.Screen name="(tabs)" />
       </Stack.Protected>
-      {/* grupo de modals */}
+
+      {/* Modals */}
       <Stack.Screen
         name="(modals)/country-picker"
         options={{ presentation: "pageSheet", headerShown: false }}
@@ -69,9 +71,11 @@ function AppContent() {
         name="(modals)/payment-method-picker"
         options={{ presentation: "pageSheet", headerShown: false }}
       />
-      {/* rutas de servicios */}
+
+      {/* Service routes */}
       <Stack.Screen name="services" options={{ headerShown: false }} />
 
+      {/* Legal */}
       <Stack.Screen
         name="privacy-policy"
         options={{ headerShown: true, title: "Política de privacidad" }}
@@ -80,11 +84,15 @@ function AppContent() {
   );
 }
 
+// ─────────────────────────────────────────────
+// Root layout — provider stack
+// ─────────────────────────────────────────────
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StripeProvider
-        publishableKey={STRIPE_PUBLISHABLE_KEY}
+        publishableKey={STRIPE_KEY}
         merchantIdentifier="merchant.com.konectaplus.app"
       >
         <ApolloProvider>
@@ -94,66 +102,11 @@ export default function RootLayout() {
                 <AppSettingsProvider>
                   <KeyboardProvider>
                     <PressablesConfig
-                      globalHandlers={{
-                        onPress: () => {
-                          Haptics.selectionAsync();
-                        },
-                      }}
+                      globalHandlers={{ onPress: () => Haptics.selectionAsync() }}
                       config={{ minScale: 0.97 }}
                     >
                       <AppContent />
-
-                      <Toaster
-                        position="bottom-center"
-                        richColors
-                        swipeToDismissDirection="left"
-                        gap={8}
-                        offset={16}
-                        style={{
-                          borderRadius: 14,
-                        }}
-                        toastOptions={{
-                          style: {
-                            backgroundColor: COLORS.surface.primary,
-                            borderWidth: 1,
-                            borderColor: COLORS.border.light,
-                            borderRadius: 14,
-                            paddingHorizontal: 14,
-                            paddingVertical: 12,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.08,
-                            shadowRadius: 12,
-                            elevation: 6,
-                          },
-                          titleStyle: {
-                            fontFamily: FONT_FAMILIES.semiBold,
-                            fontSize: 14,
-                            color: COLORS.text.primary,
-                          },
-                          descriptionStyle: {
-                            fontFamily: FONT_FAMILIES.regular,
-                            fontSize: 13,
-                            color: COLORS.text.secondary,
-                          },
-                          success: {
-                            borderColor: COLORS.primary.main + "40",
-                            backgroundColor: "#EAF7F5",
-                          },
-                          error: {
-                            borderColor: COLORS.semantic.error + "40",
-                            backgroundColor: "#FEF2F2",
-                          },
-                          warning: {
-                            borderColor: "#F59E0B40",
-                            backgroundColor: "#FFFBEB",
-                          },
-                          info: {
-                            borderColor: COLORS.border.light,
-                            backgroundColor: COLORS.surface.primary,
-                          },
-                        }}
-                      />
+                      <AppToaster />
                     </PressablesConfig>
                   </KeyboardProvider>
                 </AppSettingsProvider>
@@ -163,5 +116,63 @@ export default function RootLayout() {
         </ApolloProvider>
       </StripeProvider>
     </GestureHandlerRootView>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Toaster — extraído para no saturar RootLayout
+// ─────────────────────────────────────────────
+
+function AppToaster() {
+  return (
+    <Toaster
+      position="bottom-center"
+      richColors
+      swipeToDismissDirection="left"
+      gap={SPACING.sm}
+      offset={SPACING.md}
+      style={{ borderRadius: BORDER_RADIUS.lg }}
+      toastOptions={{
+        style: {
+          backgroundColor: COLORS.surface.primary,
+          borderWidth: 1,
+          borderColor: COLORS.border.light,
+          borderRadius: BORDER_RADIUS.lg,
+          paddingHorizontal: SPACING.component.screenPadding,
+          paddingVertical: SPACING.sm + 4,
+          shadowColor: COLORS.neutral.black,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          elevation: 6,
+        },
+        titleStyle: {
+          fontFamily: FONT_FAMILIES.semiBold,
+          fontSize: FONT_SIZES.base,
+          color: COLORS.text.primary,
+        },
+        descriptionStyle: {
+          fontFamily: FONT_FAMILIES.regular,
+          fontSize: FONT_SIZES.sm + 1,
+          color: COLORS.text.secondary,
+        },
+        success: {
+          borderColor: COLORS.primary.main + "40",
+          backgroundColor: COLORS.primary.tint,
+        },
+        error: {
+          borderColor: COLORS.semantic.error + "40",
+          backgroundColor: COLORS.semantic.errorTint,
+        },
+        warning: {
+          borderColor: COLORS.semantic.warning + "40",
+          backgroundColor: COLORS.semantic.warningTint,
+        },
+        info: {
+          borderColor: COLORS.border.light,
+          backgroundColor: COLORS.surface.primary,
+        },
+      }}
+    />
   );
 }

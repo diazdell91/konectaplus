@@ -1,2 +1,2 @@
-import { COLORS, FONTS, SIZES } from "./theme";
-export { COLORS, FONTS, SIZES };
+// Re-export everything from the main barrel
+export * from "./index";

@@ -1,45 +1,35 @@
-/**
- * Design System Index - Central Export for Theme Components
- * Based on "Revisar y confirmar" reference screen
- */
+// ── Color system (3 layers) ────────────────────────────────────────────────
+export { COLORS, PRIMITIVE, SEMANTIC, TOKENS } from "./colors";
 
-// Create THEME object here to avoid circular imports
-import { COLORS } from "./colors";
-import { BORDER_RADIUS, COMPONENT_STYLES } from "./components";
+// ── Other tokens ───────────────────────────────────────────────────────────
+export { BORDER_RADIUS, COMPONENT_SIZES, COMPONENT_STYLES } from "./components";
+export { SPACING } from "./spacing";
+export { FONT_FAMILIES, FONT_SIZES, LINE_HEIGHTS, TYPOGRAPHY } from "./typography";
+
+// ── THEME — punto de entrada único ────────────────────────────────────────
+import { COLORS, PRIMITIVE, SEMANTIC, TOKENS } from "./colors";
+import { BORDER_RADIUS, COMPONENT_SIZES, COMPONENT_STYLES } from "./components";
 import { SPACING } from "./spacing";
-import { APP_DIMENSIONS } from "./theme";
-import { TYPOGRAPHY } from "./typography";
-// Core theme exports
-export { COLORS, colorTokens } from "./colors";
-export { BORDER_RADIUS, COMPONENT_STYLES, SIZES } from "./components";
-export { componentSpacing, darkTheme, lightTheme } from "./paperTheme";
-export { SPACING, spacingTokens } from "./spacing";
-export {
-  FONT_FAMILIES,
-  FONT_SIZES,
-  FONTS,
-  LINE_HEIGHTS,
-  TYPOGRAPHY,
-} from "./typography";
-
-// Legacy exports for backward compatibility
-export { COLORS as default } from "./colors";
-
-// App dim
-
-// Create THEME object here to avoid circular imports
+import { FONT_FAMILIES, FONT_SIZES, LINE_HEIGHTS, TYPOGRAPHY } from "./typography";
 
 export const THEME = {
-  colors: COLORS,
-  spacing: SPACING,
+  colors:     COLORS,
+  primitive:  PRIMITIVE,
+  semantic:   SEMANTIC,
+  tokens:     TOKENS,
+  spacing:    SPACING,
   typography: TYPOGRAPHY,
+  fonts:      FONT_FAMILIES,
+  fontSizes:  FONT_SIZES,
+  lineHeights: LINE_HEIGHTS,
   components: COMPONENT_STYLES,
-  borderRadius: BORDER_RADIUS,
-  dimensions: APP_DIMENSIONS,
+  sizes:      COMPONENT_SIZES,
+  radius:     BORDER_RADIUS,
 } as const;
 
-// Type exports for TypeScript
-export type ColorToken = keyof typeof COLORS.neutral;
-export type SpacingToken = keyof typeof SPACING;
-export type TypographyVariant = keyof typeof TYPOGRAPHY;
-export type ComponentVariant = keyof typeof COMPONENT_STYLES;
+// ── TypeScript helpers ─────────────────────────────────────────────────────
+export type TypographyVariant  = keyof typeof TYPOGRAPHY;
+export type ColorKey           = keyof typeof COLORS;
+export type SpacingKey         = keyof typeof SPACING;
+export type BorderRadiusKey    = keyof typeof BORDER_RADIUS;
+export type ComponentStyleKey  = keyof typeof COMPONENT_STYLES;
