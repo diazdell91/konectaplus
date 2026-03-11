@@ -1,4 +1,4 @@
-import LedgerItem from "@/components/wallet/LedgerItem";
+import LedgerItem from "@/features/wallet/components/LedgerItem";
 import { LedgerItem as LedgerItemType } from "@/graphql/myLedger";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";

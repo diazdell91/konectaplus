@@ -1,4 +1,4 @@
-import { TopupContactTab } from "@/components/topup";
+import { TopupContactTab } from "@/features/topup/components";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PhonePickerScreen() {

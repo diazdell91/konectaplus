@@ -1,4 +1,4 @@
-import OrderListItem from "@/components/orders/OrderListItem";
+import OrderListItem from "@/features/orders/components/OrderListItem";
 import { Order } from "@/graphql/myOrders";
 import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";

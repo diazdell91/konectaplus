@@ -1,4 +1,4 @@
-import CountryPickerScreen from "@/components/screens/CountryPickerScreen";
+import CountryPickerScreen from "@/features/country/screens/CountryPickerScreen";
 import React from "react";
 
 const CountryPicker = () => {

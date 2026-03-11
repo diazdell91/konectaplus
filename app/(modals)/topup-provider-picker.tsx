@@ -1,4 +1,4 @@
-import TopupProviderPicker from "@/components/screens/TopupProviderPicker";
+import TopupProviderPicker from "@/features/topup/screens/TopupProviderPicker";
 import React from "react";
 
 export default function TopupProviderPickerModal() {

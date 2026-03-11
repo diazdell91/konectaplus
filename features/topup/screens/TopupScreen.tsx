@@ -1,6 +1,6 @@
 import React from "react";
-import { TopupContactTab, TopupHistoryTab } from "../topup";
-import { SegmentedTopTabsPager } from "../ui";
+import { TopupContactTab, TopupHistoryTab } from "@/features/topup/components";
+import { SegmentedTopTabsPager } from "@/components/ui";
 
 type TabKey = "contacts" | "history";
 

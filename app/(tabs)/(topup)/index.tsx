@@ -1,4 +1,4 @@
-import { TopupScreen } from "@/components/screens";
+import TopupScreen from "@/features/topup/screens/TopupScreen";
 import { ScreenHeader } from "@/components/ui";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";

@@ -1,7 +1,7 @@
 import { View, Pressable, StyleSheet, ImageSourcePropType } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { COLORS, SPACING } from "@/theme";
-import { Text } from "../ui";
+import { Text } from "@/components/ui";
 import { Image } from "expo-image";
 
 // Icon mapping - centralized icon management

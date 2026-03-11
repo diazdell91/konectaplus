@@ -1,7 +1,7 @@
 import { View, Pressable, StyleSheet } from "react-native";
 import Icon from "@expo/vector-icons/MaterialCommunityIcons";
 import { COLORS, TYPOGRAPHY, SPACING } from "@/theme";
-import { Text } from "../ui";
+import { Text } from "@/components/ui";
 
 interface Props {
   icon?: React.ComponentProps<typeof Icon>["name"];

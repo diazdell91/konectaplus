@@ -1,10 +1,8 @@
-import {
-  AppInfo,
-  ProfileFooter,
-  ProfileListItem,
-  ProfileSection,
-  SocialLinks,
-} from "@/components";
+import { AppInfo } from "@/features/profile/components/AppInfo";
+import { ProfileFooter } from "@/features/profile/components/ProfileFooter";
+import ProfileListItem from "@/features/profile/components/ProfileListItem";
+import { ProfileSection } from "@/features/profile/components/ProfileSection";
+import { SocialLinks } from "@/features/profile/components/SocialLinks";
 import { ScreenHeader } from "@/components/ui";
 import { COLORS } from "@/theme";
 import { SafeAreaView } from "react-native-safe-area-context";

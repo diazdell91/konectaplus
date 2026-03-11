@@ -1,9 +1,9 @@
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import HomeHeader from "../home/HomeHeader";
-import HomeHeroCarousel from "../home/HomeHeroCarousel";
-import ServicesGrid from "../home/ServicesGrid";
+import HomeHeader from "../components/HomeHeader";
+import HomeHeroCarousel from "../components/HomeHeroCarousel";
+import ServicesGrid from "../components/ServicesGrid";
 
 const HomeScreen = () => {
   return (
