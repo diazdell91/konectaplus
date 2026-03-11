@@ -16,12 +16,17 @@ const PhoneCountryContext = createContext<Ctx | null>(null);
 
 export function PhoneCountryProvider({
   children,
+  defaultIso = "US",
 }: {
   children: React.ReactNode;
+  defaultIso?: string;
 }) {
   const list = COUNTRIES.filter((c) => !!c.prefix);
 
-  const defaultCountry = list.find((c) => c.iso === "US") ?? list[0];
+  const defaultCountry =
+    list.find((c) => c.iso === defaultIso) ??
+    list.find((c) => c.iso === "US") ??
+    list[0];
 
   const [country, setCountry] = useState<PhoneCountry>(defaultCountry);
 
@@ -38,9 +43,13 @@ export function PhoneCountryProvider({
       return true;
     }
 
-    return (
-      clean.length >= country.minLength && clean.length <= country.maxLength
-    );
+    // minLength/maxLength include the country calling code digits (e.g. US: 11 = 1 for "+1" + 10 local).
+    // The user enters only the local digits, so we subtract the calling code digit count.
+    const callingCodeLen = dialCode.replace(/\D/g, "").length;
+    const localMin = Math.max(0, country.minLength - callingCodeLen);
+    const localMax = Math.max(0, country.maxLength - callingCodeLen);
+
+    return clean.length >= localMin && clean.length <= localMax;
   };
 
   const value = useMemo(

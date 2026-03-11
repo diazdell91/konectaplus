@@ -15,7 +15,13 @@
       "Bash(sed -i '' 's/borderWidth: SIZES\\\\.inputBorder/borderWidth: COMPONENT_SIZES.input.borderWidth/' \"$f\")",
       "Bash(sed -i '' 's/borderColor: COLORS\\\\.light\\\\.border/borderColor: COLORS.border.light/' \"$f\")",
       "Bash(sed -i '' 's/backgroundColor: COLORS\\\\.light\\\\.grey06/backgroundColor: COLORS.surface.tertiary/' \"$f\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(grep -r \"expo-device\\\\|expo-application\\\\|expo-notifications\\\\|expo-localization\\\\|expo-constants\" /Users/dayrondiazdell/Developer/konectaplus --include=*.ts* --include=*.json)",
+      "Bash(find /Users/dayrondiazdell/Developer/konectaplus -path */node_modules -prune -o -name *.graphql -o -name schema* -type f)",
+      "Bash(find /Users/dayrondiazdell/Developer/konectaplus -path */node_modules -prune -o -name *.graphql -type f -print)"
+    ],
+    "additionalDirectories": [
+      "/Users/dayrondiazdell/Developer/konectaplus/features/wallet"
     ]
   }
 }

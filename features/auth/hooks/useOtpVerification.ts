@@ -1,6 +1,6 @@
 import { useAuth } from "@/context/AuthProvider";
+import { useDeviceInfo } from "@/features/auth/hooks/useDeviceInfo";
 import { useEffect, useState } from "react";
-import { Platform } from "react-native";
 import {
   useSharedValue,
   withRepeat,
@@ -22,6 +22,7 @@ function maskPhone(phone: string): string {
 
 export function useOtpVerification(phone: string | undefined) {
   const { verifyOtp, requestOtp } = useAuth();
+  const { collect: collectDeviceInfo } = useDeviceInfo();
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,14 +65,8 @@ export function useOtpVerification(phone: string | undefined) {
     setLoading(true);
     setError(null);
     try {
-      await verifyOtp({
-        phone,
-        code: currentCode,
-        device: {
-          deviceName: Platform.OS === "ios" ? "iPhone" : "Android",
-          deviceId: "MOBILE",
-        },
-      });
+      const device = await collectDeviceInfo();
+      await verifyOtp({ phone, code: currentCode, device });
       setSuccess(true);
     } catch (e: any) {
       setError(e?.message ?? "Código incorrecto. Intenta de nuevo.");

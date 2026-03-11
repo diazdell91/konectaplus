@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { collectDeviceInfo, type DeviceInput } from "@/features/auth/hooks/useDeviceInfo";
 import React, { createContext, useCallback, useMemo } from "react";
-import { Platform } from "react-native";
 
 // ─────────────────────────────────────────────
 // GraphQL documents
@@ -87,7 +87,7 @@ type AuthContextType = {
   verifyOtp: (args: {
     phone: string;
     code: string;
-    device?: { deviceId: string; deviceName: string };
+    device?: DeviceInput;
   }) => Promise<VerifyOtpResult>;
   logout: () => Promise<boolean>;
 };
@@ -131,21 +131,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (args: {
       phone: string;
       code: string;
-      device?: { deviceId: string; deviceName: string };
+      device?: DeviceInput;
     }) => {
-      const device = args.device ?? {
-        appVersion: null,
-        deviceId: null,
-        deviceName: Platform.OS === "ios" ? "iPhone" : "Android",
-        expoPushToken: null,
-        locale: null,
-        metadata: null,
-        nativePushToken: null,
-        osVersion: null,
-        platform: Platform.OS.toUpperCase(),
-        pushPermissionStatus: "UNKNOWN",
-        timezone: null,
-      };
+      const device = args.device ?? (await collectDeviceInfo());
 
       const { data } = await client.mutate<{ verifyOtp: VerifyOtpResult }>({
         mutation: VERIFY_OTP,

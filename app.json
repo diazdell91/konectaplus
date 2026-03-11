@@ -74,7 +74,8 @@
         {
           "cameraPermission": "Permite escanear tu tarjeta de crédito o débito"
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

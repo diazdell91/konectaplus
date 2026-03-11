@@ -13,6 +13,7 @@ import {
 import { SetContextLink } from "@apollo/client/link/context";
 import { ErrorLink } from "@apollo/client/link/error";
 import { useAuthStore } from "@/store/useAuthStore";
+import { collectDeviceInfo } from "@/features/auth/hooks/useDeviceInfo";
 
 // RxJS
 import { from as rxFrom } from "rxjs";
@@ -83,24 +84,10 @@ async function refreshAccessToken(client: ApolloClient<unknown>) {
   if (!refreshToken) return null;
 
   try {
+    const device = await collectDeviceInfo();
     const res = await client.mutate<RefreshSessionData>({
       mutation: REFRESH_SESSION,
-      variables: {
-        refreshToken,
-        device: {
-          appVersion: null,
-          deviceId: null,
-          deviceName: null,
-          expoPushToken: null,
-          locale: null,
-          metadata: null,
-          nativePushToken: null,
-          osVersion: null,
-          platform: null,
-          pushPermissionStatus: "UNKNOWN",
-          timezone: null,
-        },
-      },
+      variables: { refreshToken, device },
       fetchPolicy: "no-cache",
     });
 

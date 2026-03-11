@@ -1,7 +1,9 @@
-import OrderDetailScreen from "@/components/orders/OrderDetailScreen";
+import OrderDetailScreen from "@/features/orders/screens/OrderDetailScreen";
 import { useLocalSearchParams } from "expo-router";
 
-export default function OrderDetailRoute() {
+const OrderDetailPage = () => {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   return <OrderDetailScreen orderId={orderId} />;
-}
+};
+
+export default OrderDetailPage;
