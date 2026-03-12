@@ -1,4 +1,5 @@
 import { getFlagSource } from "@/constants/phoneCountries";
+import { COMPONENT_SIZES } from "@/theme";
 import { FONT_FAMILIES } from "@/theme/typography";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#EAEAEE",
     paddingHorizontal: 12,
-    height: 50,
+    height: COMPONENT_SIZES.input.heightSm,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,

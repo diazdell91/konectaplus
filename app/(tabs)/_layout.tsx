@@ -5,7 +5,10 @@ import { DynamicColorIOS, Platform } from "react-native";
 
 const activeTint =
   Platform.OS === "ios"
-    ? DynamicColorIOS({ light: COLORS.primary.main, dark: COLORS.primary.light })
+    ? DynamicColorIOS({
+        light: COLORS.primary.main,
+        dark: COLORS.primary.light,
+      })
     : COLORS.primary.main;
 
 export default function TabLayout() {
@@ -20,7 +23,7 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Icon sf="arrow.up.circle.fill" md="arrow_upward" />
         <NativeTabs.Trigger.Label>Recargas</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile/index">
+      <NativeTabs.Trigger name="(profile)/index">
         <NativeTabs.Trigger.Icon sf="person.fill" md="account_circle" />
         <NativeTabs.Trigger.Label>Perfil</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>

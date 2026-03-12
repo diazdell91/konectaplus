@@ -5,6 +5,7 @@ import {
   filterCountries,
   makeSections,
 } from "@/utils/countrySections";
+import Input from "@/components/ui/Input";
 import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
 import {
@@ -13,7 +14,6 @@ import {
   SectionList,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -106,18 +106,15 @@ export default function CountryPickerScreen() {
 
       {/* Search */}
       <View style={styles.searchWrap}>
-        <View style={styles.searchBox}>
-          <Text style={styles.searchIcon}>⌕</Text>
-          <TextInput
-            value={q}
-            onChangeText={setQ}
-            placeholder="Buscar país"
-            placeholderTextColor="rgba(0,0,0,0.45)"
-            style={styles.search}
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-        </View>
+        <Input
+          value={q}
+          onChangeText={setQ}
+          placeholder="Buscar país"
+          iconLeft="magnify"
+          autoCorrect={false}
+          autoCapitalize="none"
+          size="md"
+        />
       </View>
 
       {/* Content */}
@@ -178,19 +175,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFFFF" },
 
   searchWrap: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 10 },
-  searchBox: {
-    height: 44,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(0,0,0,0.10)",
-  },
-  searchIcon: { color: "rgba(0,0,0,0.55)", fontSize: 16 },
-  search: { flex: 1, color: "#111827" },
 
   sectionTitle: {
     paddingHorizontal: 16,

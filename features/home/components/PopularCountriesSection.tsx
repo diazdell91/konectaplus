@@ -1,86 +1,37 @@
+import { useQuery } from "@apollo/client/react";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React from "react";
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { Text } from "@/components/ui";
-import COLORS from "@/theme/colors";
+import { COUNTRIES_QUERY, CountriesData, Country } from "@/graphql/countries";
+import { COLORS } from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
+
+// ─────────────────────────────────────────────
+// Config
+// ─────────────────────────────────────────────
 
 const HORIZONTAL_PADDING = 16;
 const NUM_COLUMNS = 4;
 
-interface Country {
-  id: string;
-  name: string;
-  image: string;
-}
+// ─────────────────────────────────────────────
+// PopularCountriesSection
+// ─────────────────────────────────────────────
 
-const countries: Country[] = [
-  {
-    id: "1",
-    name: "México",
-    image: "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=200&h=200&fit=crop",
-  },
-  {
-    id: "2",
-    name: "Nicaragua",
-    image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7?w=200&h=200&fit=crop",
-  },
-  {
-    id: "3",
-    name: "Cuba",
-    image: "https://images.unsplash.com/photo-1500759285222-a95626b934cb?w=200&h=200&fit=crop",
-  },
-  {
-    id: "4",
-    name: "RD",
-    image: "https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?w=200&h=200&fit=crop",
-  },
-  {
-    id: "5",
-    name: "El Salvador",
-    image: "https://images.unsplash.com/photo-1564959130747-897fb406b9af?w=200&h=200&fit=crop",
-  },
-  {
-    id: "6",
-    name: "Haití",
-    image: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=200&h=200&fit=crop",
-  },
-  {
-    id: "7",
-    name: "Honduras",
-    image: "https://images.unsplash.com/photo-1591012911207-0dbac5c92cad?w=200&h=200&fit=crop",
-  },
-  {
-    id: "8",
-    name: "Guatemala",
-    image: "https://images.unsplash.com/photo-1591017403286-fd8493524e1e?w=200&h=200&fit=crop",
-  },
-];
-
-interface PopularCountriesSectionProps {
-  onPressCountry?: (countryId: string) => void;
-}
-
-const PopularCountriesSection = ({
-  onPressCountry,
-}: PopularCountriesSectionProps) => {
+export default function PopularCountriesSection() {
   const { width } = useWindowDimensions();
+  const { data, loading } = useQuery<CountriesData>(COUNTRIES_QUERY);
+
   const itemWidth = (width - HORIZONTAL_PADDING * 2) / NUM_COLUMNS;
   const imageSize = Math.min(itemWidth * 0.72, 76);
 
-  const handlePress = (id: string) => {
-    if (onPressCountry) {
-      onPressCountry(id);
-    } else {
-      console.log(id);
-    }
-  };
+  const countries = React.useMemo(
+    () => [...(data?.countries ?? [])].sort((a, b) => a.priority - b.priority),
+    [data]
+  );
+
+  if (loading || countries.length === 0) return null;
 
   const renderItem = ({ item }: { item: Country }) => (
     <Pressable
@@ -89,18 +40,11 @@ const PopularCountriesSection = ({
         { width: itemWidth },
         pressed && styles.itemPressed,
       ]}
-      onPress={() => handlePress(item.id)}
+      onPress={() => router.push(item.deeplink as any)}
     >
       <Image
-        source={{ uri: item.image }}
-        style={[
-          styles.image,
-          {
-            width: imageSize,
-            height: imageSize,
-            borderRadius: imageSize / 2,
-          },
-        ]}
+        source={{ uri: item.imageUrl }}
+        style={[styles.image, { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }]}
         contentFit="cover"
       />
       <Text style={styles.name} numberOfLines={1}>
@@ -122,9 +66,11 @@ const PopularCountriesSection = ({
       />
     </View>
   );
-};
+}
 
-export default PopularCountriesSection;
+// ─────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {
@@ -149,7 +95,6 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: FONT_FAMILIES.medium,
     fontSize: 13,
-    fontWeight: "500",
     color: COLORS.text.primary,
     textAlign: "center",
     marginTop: 8,

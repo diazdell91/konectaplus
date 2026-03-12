@@ -18,10 +18,13 @@
       "Bash(done)",
       "Bash(grep -r \"expo-device\\\\|expo-application\\\\|expo-notifications\\\\|expo-localization\\\\|expo-constants\" /Users/dayrondiazdell/Developer/konectaplus --include=*.ts* --include=*.json)",
       "Bash(find /Users/dayrondiazdell/Developer/konectaplus -path */node_modules -prune -o -name *.graphql -o -name schema* -type f)",
-      "Bash(find /Users/dayrondiazdell/Developer/konectaplus -path */node_modules -prune -o -name *.graphql -type f -print)"
+      "Bash(find /Users/dayrondiazdell/Developer/konectaplus -path */node_modules -prune -o -name *.graphql -type f -print)",
+      "Bash(ls \"/Users/dayrondiazdell/Developer/konectaplus/app/\\(tabs\\)/\")",
+      "Bash(ls \"/Users/dayrondiazdell/Developer/konectaplus/app/\\(tabs\\)/profile/\")"
     ],
     "additionalDirectories": [
-      "/Users/dayrondiazdell/Developer/konectaplus/features/wallet"
+      "/Users/dayrondiazdell/Developer/konectaplus/features/wallet",
+      "/Users/dayrondiazdell/Developer/konectaplus/features/profile"
     ]
   }
 }

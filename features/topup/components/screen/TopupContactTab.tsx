@@ -1,50 +1,29 @@
-import { usePhoneCountry } from "@/context/PhoneCountry";
-import {
-  ServiceInputKind,
-  ServiceType,
-  useServiceSelectionStore,
-} from "@/store/useServiceSelectionStore";
-import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { View } from "react-native";
 import ContactsList from "../contacts/ContactsList";
-import { useContacts } from "../contacts/useContacts";
 import SearchBar from "../search/SearchBar";
+import { useTopupContactTab } from "../../hooks/useTopupContactTab";
 
 const TopupContactTab = () => {
-  const [query, setQuery] = useState("");
-  const { contacts, loading, permission, loadContacts } = useContacts();
-  const { country, dialCode } = usePhoneCountry();
-
-  const { hydrateFromContact, startSelection, setCountryIso2 } =
-    useServiceSelectionStore();
-
-  useEffect(() => {
-    startSelection({
-      serviceType: ServiceType.TOPUP_MOBILE,
-      inputKind: ServiceInputKind.PHONE,
-    });
-  }, [startSelection]);
-
-  useEffect(() => {
-    loadContacts();
-  }, [loadContacts]);
-
-  const handleSelectContact = (phone: string) => {
-    hydrateFromContact(phone, dialCode);
-    setCountryIso2(country.iso);
-    router.push({
-      pathname: "/services/topup/topup-flow",
-      params: { serviceItemKey: "TOPUP_MOBILE" },
-    });
-  };
+  const {
+    query,
+    setQuery,
+    contacts,
+    loading,
+    permission,
+    loadContacts,
+    country,
+    dialCode,
+    handleSelectContact,
+    handleCountryPress,
+  } = useTopupContactTab();
 
   return (
     <View style={{ flex: 1 }}>
       <SearchBar
         value={query}
         onChangeText={setQuery}
-        onCountryPress={() => router.push("/(modals)/country-picker")}
+        onCountryPress={handleCountryPress}
         onOptionsPress={() => {}}
         countryIso={country.iso}
         countryDialCode={dialCode}

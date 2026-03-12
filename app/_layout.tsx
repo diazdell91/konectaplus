@@ -80,6 +80,10 @@ function AppContent() {
         name="privacy-policy"
         options={{ headerShown: true, title: "Política de privacidad" }}
       />
+      <Stack.Screen
+        name="term-of-service"
+        options={{ headerShown: true, title: "Términos de servicio" }}
+      />
     </Stack>
   );
 }

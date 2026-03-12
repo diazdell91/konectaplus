@@ -1,9 +1,13 @@
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import FeaturedPromotionsSection from "../components/FeaturedPromotionsSection";
 import HomeHeader from "../components/HomeHeader";
 import HomeHeroCarousel from "../components/HomeHeroCarousel";
+import PopularCountriesSection from "../components/PopularCountriesSection";
+import RecentContactsList from "../components/RecentContactsList";
 import ServicesGrid from "../components/ServicesGrid";
+import SpecialOffersSection from "../components/SpecialOffersSection";
 
 const HomeScreen = () => {
   return (
@@ -19,14 +23,19 @@ const HomeScreen = () => {
 
         <HomeHeroCarousel
           onPressSlide={(banner) => {
-            console.log("Slide pressed:", banner.id, banner.actionType, banner.actionValue);
+            console.log(
+              "Slide pressed:",
+              banner.id,
+              banner.actionType,
+              banner.actionValue,
+            );
           }}
         />
 
-        {/* <RecentContactsList /> */}
+        <RecentContactsList />
         <ServicesGrid />
 
-        {/* <FeaturedPromotionsSection
+        <FeaturedPromotionsSection
           onPressPromotion={(id) => {
             console.log("Promotion selected:", id);
           }}
@@ -41,7 +50,7 @@ const HomeScreen = () => {
           onPressOffer={(id) => {
             console.log("Offer selected:", id);
           }}
-        /> */}
+        />
       </ScrollView>
     </SafeAreaView>
   );

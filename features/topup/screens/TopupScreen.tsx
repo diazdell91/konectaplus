@@ -1,12 +1,12 @@
-import React from "react";
-import { TopupContactTab, TopupHistoryTab } from "@/features/topup/components";
 import { SegmentedTopTabsPager } from "@/components/ui";
+import { TopupContactTab, TopupHistoryTab } from "@/features/topup/components";
+import React from "react";
 
 type TabKey = "contacts" | "history";
 
 const tabs: { key: TabKey; title: string }[] = [
   { key: "contacts", title: "Contactos" },
-  { key: "", title: "Historial" },
+  { key: "history", title: "Historial" },
 ];
 
 export default function TopupScreen() {
