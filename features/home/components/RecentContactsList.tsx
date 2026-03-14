@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
-import React from "react";
+import { router } from "expo-router";
+import React, { useEffect, useMemo } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -9,28 +11,24 @@ import {
 import { Text } from "@/components/ui";
 import COLORS from "@/theme/colors";
 import SPACING from "@/theme/spacing";
+import { useContacts } from "@/features/topup/components/contacts/useContacts";
+import type { ContactItem as DeviceContact } from "@/features/topup/components/contacts/ContactsList";
 
 interface Contact {
   id: string;
   fullName: string;
-  avatar: string;
+  avatar: string | null;
 }
-
-const CONTACTS: Contact[] = [
-  { id: "1", fullName: "Brian Smith", avatar: "https://i.pravatar.cc/150?img=1" },
-  { id: "2", fullName: "Ana Torres", avatar: "https://i.pravatar.cc/150?img=2" },
-  { id: "3", fullName: "Carlos Mendez", avatar: "https://i.pravatar.cc/150?img=3" },
-  { id: "4", fullName: "Laura Pérez", avatar: "https://i.pravatar.cc/150?img=4" },
-  { id: "5", fullName: "Miguel Rojas", avatar: "https://i.pravatar.cc/150?img=5" },
-  { id: "6", fullName: "Sofia Castillo", avatar: "https://i.pravatar.cc/150?img=6" },
-  { id: "7", fullName: "Diego Vargas", avatar: "https://i.pravatar.cc/150?img=7" },
-  { id: "8", fullName: "Valeria Rios", avatar: "https://i.pravatar.cc/150?img=8" },
-  { id: "9", fullName: "Andrés Fuentes", avatar: "https://i.pravatar.cc/150?img=9" },
-  { id: "10", fullName: "Camila Herrera", avatar: "https://i.pravatar.cc/150?img=10" },
-];
 
 function getFirstName(fullName: string): string {
   return fullName.split(" ")[0];
+}
+
+function getInitials(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
 }
 
 interface ContactItemProps {
@@ -39,11 +37,17 @@ interface ContactItemProps {
 
 const ContactItem = ({ contact }: ContactItemProps) => (
   <Pressable style={styles.item}>
-    <Image
-      source={{ uri: contact.avatar }}
-      style={styles.avatar}
-      contentFit="cover"
-    />
+    {contact.avatar ? (
+      <Image
+        source={{ uri: contact.avatar }}
+        style={styles.avatar}
+        contentFit="cover"
+      />
+    ) : (
+      <View style={styles.fallbackAvatar}>
+        <Text style={styles.initials}>{getInitials(contact.fullName)}</Text>
+      </View>
+    )}
     <Text small align="center" color={COLORS.text.secondary} style={styles.name} numberOfLines={1}>
       {getFirstName(contact.fullName)}
     </Text>
@@ -51,24 +55,59 @@ const ContactItem = ({ contact }: ContactItemProps) => (
 );
 
 const RecentContactsList = () => {
+  const { contacts, loading, permission, loadContacts } = useContacts();
+
+  useEffect(() => {
+    loadContacts();
+  }, [loadContacts]);
+
+  const recentContacts = useMemo<Contact[]>(() => {
+    return contacts.slice(0, 12).map((c: DeviceContact) => ({
+      id: c.id,
+      fullName: c.displayName,
+      avatar: null,
+    }));
+  }, [contacts]);
+
+  const handleViewAll = () => {
+    router.push("/(tabs)/(topup)" as never);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text h4>Mis Contactos</Text>
-        <Pressable onPress={() => {}}>
+        <Pressable onPress={handleViewAll}>
           <Text small color={COLORS.primary.main}>Ver todos</Text>
         </Pressable>
       </View>
 
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="small" color={COLORS.primary.main} />
+        </View>
+      ) : permission === "denied" ? (
+        <View style={styles.centered}>
+          <Text small color={COLORS.text.secondary}>
+            Activa permisos de contactos para ver tus recientes.
+          </Text>
+        </View>
+      ) : (
       <FlatList
-        data={CONTACTS}
+        data={recentContacts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <ContactItem contact={item} />}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={
+          <Text small color={COLORS.text.secondary}>
+            No tienes contactos disponibles.
+          </Text>
+        }
       />
+      )}
     </View>
   );
 };
@@ -102,7 +141,26 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: COLORS.neutral.gray100,
   },
+  fallbackAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.primary.tint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  initials: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.primary.main,
+  },
   name: {
     marginTop: SPACING.xs,
+  },
+  centered: {
+    minHeight: 72,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: SPACING.component.screenPadding,
   },
 });
