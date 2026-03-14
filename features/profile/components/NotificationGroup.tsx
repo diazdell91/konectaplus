@@ -4,16 +4,25 @@ import { FONT_FAMILIES } from "@/theme/typography";
 import { SPACING } from "@/theme/spacing";
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { NotificationGroup as NotificationGroupType } from "../constants/notifications.constants";
+import {
+  NotificationGroup as NotificationGroupType,
+  NotificationToggleKey,
+} from "../constants/notifications.constants";
 import { NotificationRow } from "./NotificationRow";
 
 type Props = {
   group: NotificationGroupType;
-  enabled: Record<string, boolean>;
-  onToggle: (key: string) => void;
+  enabled: Record<NotificationToggleKey, boolean>;
+  onToggle: (key: NotificationToggleKey) => void;
+  savingKey: NotificationToggleKey | null;
 };
 
-export function NotificationGroup({ group, enabled, onToggle }: Props) {
+export function NotificationGroup({
+  group,
+  enabled,
+  onToggle,
+  savingKey,
+}: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{group.label}</Text>
@@ -24,6 +33,7 @@ export function NotificationGroup({ group, enabled, onToggle }: Props) {
             item={item}
             enabled={enabled[item.key] ?? false}
             onToggle={() => onToggle(item.key)}
+            disabled={savingKey === item.key}
             showBorder={idx < group.items.length - 1}
           />
         ))}

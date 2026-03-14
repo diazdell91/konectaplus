@@ -9,10 +9,17 @@ type Props = {
   item: NotificationItem;
   enabled: boolean;
   onToggle: () => void;
+  disabled?: boolean;
   showBorder: boolean;
 };
 
-export function NotificationRow({ item, enabled, onToggle, showBorder }: Props) {
+export function NotificationRow({
+  item,
+  enabled,
+  onToggle,
+  disabled = false,
+  showBorder,
+}: Props) {
   return (
     <View style={[styles.row, showBorder && styles.rowBorder]}>
       <View style={styles.rowText}>
@@ -22,6 +29,7 @@ export function NotificationRow({ item, enabled, onToggle, showBorder }: Props) 
       <Switch
         value={enabled}
         onValueChange={onToggle}
+        disabled={disabled}
         trackColor={{ false: COLORS.border.light, true: COLORS.primary.main }}
         thumbColor="#fff"
       />

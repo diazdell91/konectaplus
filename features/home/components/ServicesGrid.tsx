@@ -29,7 +29,6 @@ import Animated, {
 
 const H_PAD     = SPACING.component.screenPadding;
 const GAP       = SPACING.sm;
-const COLS      = 4;
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -91,6 +90,7 @@ const ServiceCard = ({ item, width, onPress }: ServiceCardProps) => {
   const { icon: iconColor, bg: iconBg } = resolveColors(item);
   const iconName = resolveIcon(item);
   const scale = useSharedValue(1);
+  const showBadge = item.badge && item.badge !== "NONE";
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -107,15 +107,27 @@ const ServiceCard = ({ item, width, onPress }: ServiceCardProps) => {
         scale.value = withTiming(1, { duration: 150 });
       }}
     >
-      {/* Icon container — Regla del Icon Container */}
+      {showBadge && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText} numberOfLines={1}>
+            {item.badge}
+          </Text>
+        </View>
+      )}
+
       <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
-        <Ionicons name={iconName} size={24} color={iconColor} />
+        <Ionicons name={iconName} size={28} color={iconColor} />
       </View>
 
-      {/* Label */}
       <Text style={styles.label} numberOfLines={2}>
         {item.title}
       </Text>
+
+      {!!item.subtitle && (
+        <Text style={styles.subtitle} numberOfLines={2}>
+          {item.subtitle}
+        </Text>
+      )}
     </AnimatedPressable>
   );
 };
@@ -126,8 +138,10 @@ const ServiceCard = ({ item, width, onPress }: ServiceCardProps) => {
 
 const SkeletonCard = ({ width }: { width: number }) => (
   <View style={[styles.card, styles.skeleton, { width }]}>
+    <View style={styles.skeletonBadge} />
     <View style={styles.skeletonIcon} />
-    <View style={styles.skeletonLabel} />
+    <View style={styles.skeletonLabelPrimary} />
+    <View style={styles.skeletonLabelSecondary} />
   </View>
 );
 
@@ -141,9 +155,10 @@ interface ServicesGridProps {
 
 const ServicesGrid = ({ onPressService }: ServicesGridProps) => {
   const { width: screenWidth } = useWindowDimensions();
+  const cols = screenWidth >= 900 ? 4 : screenWidth >= 640 ? 3 : 2;
 
-  const totalGaps = GAP * (COLS - 1);
-  const cardWidth = (screenWidth - H_PAD * 2 - totalGaps) / COLS;
+  const totalGaps = GAP * (cols - 1);
+  const cardWidth = (screenWidth - H_PAD * 2 - totalGaps) / cols;
 
   const { data, loading, error } = useQuery<ServiceCategoriesData>(
     SERVICE_CATEGORIES,
@@ -172,7 +187,7 @@ const ServicesGrid = ({ onPressService }: ServicesGridProps) => {
 
       <View style={styles.grid}>
         {showSkeleton
-          ? Array.from({ length: COLS }).map((_, i) => (
+          ? Array.from({ length: cols * 2 }).map((_, i) => (
               <SkeletonCard key={i} width={cardWidth} />
             ))
           : showItems
@@ -216,43 +231,84 @@ const styles = StyleSheet.create({
 
   // Card
   card: {
-    alignItems: "center",
+    minHeight: 136,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
+    backgroundColor: COLORS.surface.primary,
+    justifyContent: "flex-start",
     gap: SPACING.xs,
-    paddingVertical: SPACING.sm,
+    position: "relative",
+  },
+  badge: {
+    position: "absolute",
+    top: SPACING.sm,
+    right: SPACING.sm,
+    backgroundColor: COLORS.primary.tint,
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: 2,
+    paddingHorizontal: SPACING.xs + 2,
+    borderWidth: 1,
+    borderColor: COLORS.primary.main + "33",
+  },
+  badgeText: {
+    fontFamily: FONT_FAMILIES.semiBold,
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.primary.main,
+    fontWeight: "600",
   },
 
-  // Icon container
   iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: BORDER_RADIUS.lg,
+    width: 60,
+    height: 60,
+    borderRadius: BORDER_RADIUS.xl,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  // Label
   label: {
-    fontFamily: FONT_FAMILIES.medium,
-    fontSize: FONT_SIZES.xs,
-    fontWeight: "500",
+    marginTop: 2,
+    fontFamily: FONT_FAMILIES.semiBold,
+    fontSize: FONT_SIZES.base,
+    fontWeight: "600",
     color: COLORS.text.primary,
-    textAlign: "center",
-    lineHeight: 14,
+    lineHeight: 18,
+  },
+  subtitle: {
+    fontFamily: FONT_FAMILIES.regular,
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.text.secondary,
+    lineHeight: 17,
   },
 
-  // Skeleton
   skeleton: {
     opacity: 1,
   },
-  skeletonIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: BORDER_RADIUS.lg,
+  skeletonBadge: {
+    position: "absolute",
+    top: SPACING.sm,
+    right: SPACING.sm,
+    width: 54,
+    height: 18,
+    borderRadius: BORDER_RADIUS.md,
     backgroundColor: COLORS.neutral.gray100,
   },
-  skeletonLabel: {
-    width: 40,
-    height: 8,
+  skeletonIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.neutral.gray100,
+  },
+  skeletonLabelPrimary: {
+    width: "78%",
+    height: 12,
+    borderRadius: BORDER_RADIUS.sm,
+    backgroundColor: COLORS.neutral.gray100,
+  },
+  skeletonLabelSecondary: {
+    width: "62%",
+    height: 10,
     borderRadius: BORDER_RADIUS.sm,
     backgroundColor: COLORS.neutral.gray100,
   },

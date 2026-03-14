@@ -13,6 +13,7 @@ const TopupContactTab = () => {
     permission,
     loadContacts,
     country,
+    countryFilterIso,
     dialCode,
     handleSelectContact,
     handleCountryPress,
@@ -33,7 +34,7 @@ const TopupContactTab = () => {
         loading={loading}
         permissionDenied={permission === "denied"}
         query={query}
-        countryIso={country.iso}
+        countryIso={countryFilterIso}
         onSelect={handleSelectContact}
         onRequestPermission={loadContacts}
       />

@@ -6,11 +6,23 @@ import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NotificationGroup } from "../components/NotificationGroup";
+import { PushPermissionDeniedCard } from "../components/PushPermissionDeniedCard";
+import { PushPermissionPromptCard } from "../components/PushPermissionPromptCard";
 import { NOTIFICATION_GROUPS } from "../constants/notifications.constants";
 import { useNotificationsScreen } from "../hooks/useNotificationsScreen";
 
 export default function NotificationsScreen() {
-  const { enabled, toggle } = useNotificationsScreen();
+  const {
+    enabled,
+    toggle,
+    savingKey,
+    requestingPermission,
+    shouldShowPermissionPrompt,
+    isPermissionDenied,
+    handlePermissionPromptAccept,
+    handlePermissionPromptDismiss,
+    openSystemSettings,
+  } = useNotificationsScreen();
 
   return (
     <SafeAreaView style={styles.root} edges={["bottom"]}>
@@ -18,18 +30,30 @@ export default function NotificationsScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        {shouldShowPermissionPrompt && (
+          <PushPermissionPromptCard
+            loading={requestingPermission}
+            onAccept={handlePermissionPromptAccept}
+            onDismiss={handlePermissionPromptDismiss}
+          />
+        )}
+
+        {isPermissionDenied && (
+          <PushPermissionDeniedCard onOpenSettings={openSystemSettings} />
+        )}
+
         {NOTIFICATION_GROUPS.map((group) => (
           <NotificationGroup
             key={group.label}
             group={group}
             enabled={enabled}
             onToggle={toggle}
+            savingKey={savingKey}
           />
         ))}
 
         <Text style={styles.hint}>
-          Las notificaciones push requieren que los permisos estén activados en
-          la configuración de tu dispositivo.
+          Puedes cambiar este permiso en cualquier momento desde la configuración de tu dispositivo.
         </Text>
       </ScrollView>
     </SafeAreaView>

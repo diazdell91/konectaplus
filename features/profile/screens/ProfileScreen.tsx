@@ -5,17 +5,20 @@ import { ProfileSection } from "@/features/profile/components/ProfileSection";
 import { SocialLinks } from "@/features/profile/components/SocialLinks";
 import { ScreenHeader } from "@/components/ui";
 import { COLORS } from "@/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ME, MeData } from "@/graphql/me";
 import { AuthContext } from "@/context/AuthProvider";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { SPACING } from "@/theme";
 import { useQuery } from "@apollo/client/react";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
+import { toast } from "sonner-native";
 
 export default function ProfileScreen() {
-  const { logout } = useContext(AuthContext);
+  const { logout, logoutAllDevices } = useContext(AuthContext);
+  const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const { data } = useQuery<MeData>(ME, { fetchPolicy: "cache-and-network" });
 
@@ -27,6 +30,22 @@ export default function ProfileScreen() {
     logout();
   };
 
+  const handleLogoutAllDevices = async () => {
+    if (isLoggingOutAll) return;
+
+    try {
+      setIsLoggingOutAll(true);
+      const ok = await logoutAllDevices();
+      if (!ok) {
+        toast.error("No se pudieron cerrar las sesiones");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error inesperado");
+    } finally {
+      setIsLoggingOutAll(false);
+    }
+  };
+
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: COLORS.surface.primary }}>
       <ScreenHeader
@@ -36,7 +55,10 @@ export default function ProfileScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: SPACING.xl + insets.bottom + SPACING.xxxl },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <ProfileSection title="Mi cuenta">
@@ -93,6 +115,13 @@ export default function ProfileScreen() {
             title="Sesiones activas"
             subtitle="Dispositivos con acceso a tu cuenta"
             onPress={() => router.push("/services/profile/sessions")}
+          />
+          <ProfileListItem
+            icon="logout-variant"
+            title={isLoggingOutAll ? "Cerrando sesiones..." : "Cerrar sesión en todos los dispositivos"}
+            subtitle="Cierra todas tus sesiones activas"
+            onPress={isLoggingOutAll ? undefined : handleLogoutAllDevices}
+            opacity={isLoggingOutAll ? 0.7 : 1}
           />
         </ProfileSection>
 

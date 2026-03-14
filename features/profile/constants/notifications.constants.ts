@@ -1,5 +1,5 @@
 export interface NotificationItem {
-  key: string;
+  key: NotificationToggleKey;
   title: string;
   subtitle: string;
 }
@@ -47,10 +47,41 @@ export const NOTIFICATION_GROUPS: NotificationGroup[] = [
   },
 ];
 
-export const DEFAULT_NOTIFICATION_STATE: Record<string, boolean> = {
+export const DEFAULT_NOTIFICATION_STATE = {
   recharge_success: true,
   payment_confirmed: true,
   wallet_topup: true,
   login_alert: true,
   promotions: false,
+} as const;
+
+export type NotificationToggleKey = keyof typeof DEFAULT_NOTIFICATION_STATE;
+
+export type NotificationPreferenceInputField =
+  | "orderUpdatesEnabled"
+  | "transactionalEnabled"
+  | "walletUpdatesEnabled"
+  | "supportUpdatesEnabled"
+  | "promotionsEnabled";
+
+export const NOTIFICATION_BACKEND_FIELD_BY_KEY: Record<
+  NotificationToggleKey,
+  NotificationPreferenceInputField
+> = {
+  recharge_success: "orderUpdatesEnabled",
+  payment_confirmed: "transactionalEnabled",
+  wallet_topup: "walletUpdatesEnabled",
+  login_alert: "supportUpdatesEnabled",
+  promotions: "promotionsEnabled",
+};
+
+export const NOTIFICATION_KEY_BY_BACKEND_FIELD: Record<
+  NotificationPreferenceInputField,
+  NotificationToggleKey
+> = {
+  orderUpdatesEnabled: "recharge_success",
+  transactionalEnabled: "payment_confirmed",
+  walletUpdatesEnabled: "wallet_topup",
+  supportUpdatesEnabled: "login_alert",
+  promotionsEnabled: "promotions",
 };

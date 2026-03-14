@@ -3,6 +3,8 @@ import { useApolloClient } from "@apollo/client/react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { collectDeviceInfo, type DeviceInput } from "@/features/auth/hooks/useDeviceInfo";
 import React, { createContext, useCallback, useMemo } from "react";
+import { AppState } from "react-native";
+import { syncPushDevice } from "@/utils/push/syncPushDevice";
 
 // ─────────────────────────────────────────────
 // GraphQL documents
@@ -49,6 +51,12 @@ const LOGOUT = gql`
   }
 `;
 
+const LOGOUT_ALL_DEVICES = gql`
+  mutation LogoutAllDevices {
+    logoutAllDevices
+  }
+`;
+
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
@@ -90,6 +98,7 @@ type AuthContextType = {
     device?: DeviceInput;
   }) => Promise<VerifyOtpResult>;
   logout: () => Promise<boolean>;
+  logoutAllDevices: () => Promise<boolean>;
 };
 
 // ─────────────────────────────────────────────
@@ -106,6 +115,7 @@ export const AuthContext = createContext<AuthContextType>({
     throw new Error("Not initialized");
   },
   logout: async () => false,
+  logoutAllDevices: async () => false,
 });
 
 // ─────────────────────────────────────────────
@@ -114,6 +124,7 @@ export const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const client = useApolloClient();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
 
   const requestOtp = useCallback(
     async (args: { phone: string; purpose: "LOGIN" | "REGISTER" | string }) => {
@@ -150,6 +161,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionId: payload.session?.id ?? null,
       });
 
+      try {
+        await syncPushDevice(client);
+      } catch (e) {
+        if (__DEV__) {
+          console.warn("[AuthProvider] syncPushDevice after login failed:", e);
+        }
+      }
+
       return payload;
     },
     [client],
@@ -178,10 +197,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [client]);
 
+  const logoutAllDevices = useCallback(async () => {
+    try {
+      const { data } = await client.mutate<{ logoutAllDevices: boolean }>({
+        mutation: LOGOUT_ALL_DEVICES,
+        fetchPolicy: "no-cache",
+      });
+
+      const ok = !!data?.logoutAllDevices;
+      if (ok) {
+        useAuthStore.getState().clearAuth();
+      }
+      return ok;
+    } catch (e) {
+      console.warn("[AuthProvider] logoutAllDevices failed:", e);
+      return false;
+    }
+  }, [client]);
+
   const value = useMemo(
-    () => ({ requestOtp, verifyOtp, logout }),
-    [requestOtp, verifyOtp, logout],
+    () => ({ requestOtp, verifyOtp, logout, logoutAllDevices }),
+    [requestOtp, verifyOtp, logout, logoutAllDevices],
   );
+
+  React.useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const subscription = AppState.addEventListener("change", async (state) => {
+      if (state !== "active") return;
+
+      try {
+        await syncPushDevice(client);
+      } catch (e) {
+        if (__DEV__) {
+          console.warn("[AuthProvider] syncPushDevice on foreground failed:", e);
+        }
+      }
+    });
+
+    return () => subscription.remove();
+  }, [client, isAuthenticated]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -213,5 +268,6 @@ export function useAuth() {
     requestOtp: ctx.requestOtp,
     verifyOtp: ctx.verifyOtp,
     logout: ctx.logout,
+    logoutAllDevices: ctx.logoutAllDevices,
   };
 }

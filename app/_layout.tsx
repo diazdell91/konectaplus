@@ -17,6 +17,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 import { Toaster } from "sonner-native";
 
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Ignore if splash was already prevented/hidden.
+});
+
 // ─────────────────────────────────────────────
 // Reanimated — supress pressto false-positive warnings
 // ─────────────────────────────────────────────
@@ -40,9 +44,17 @@ function AppContent() {
   const [fontsLoaded] = useFonts({ ...FONTS });
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
   const isHydrated      = useAuthStore(selectIsHydrated);
+  const isReady = isHydrated && fontsLoaded;
 
-  if (!isHydrated || !fontsLoaded) {
-    SplashScreen.preventAutoHideAsync();
+  React.useEffect(() => {
+    if (!isReady) return;
+
+    SplashScreen.hideAsync().catch(() => {
+      // Ignore race conditions when splash is already hidden.
+    });
+  }, [isReady]);
+
+  if (!isReady) {
     return null;
   }
 

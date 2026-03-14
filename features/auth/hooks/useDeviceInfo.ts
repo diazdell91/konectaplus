@@ -5,6 +5,7 @@ import * as Localization from "expo-localization";
 import * as Notifications from "expo-notifications";
 import { useCallback } from "react";
 import { Platform } from "react-native";
+import { PushPermissionStatus } from "@/graphql/myUserDevicePushToken";
 
 export type DeviceInput = {
   appVersion: string | null;
@@ -16,7 +17,7 @@ export type DeviceInput = {
   nativePushToken: string | null;
   osVersion: string | null;
   platform: string | null;
-  pushPermissionStatus: string | null;
+  pushPermissionStatus: PushPermissionStatus | null;
   timezone: string | null;
 };
 
@@ -36,22 +37,54 @@ async function getExpoPushToken(): Promise<string | null> {
   }
 }
 
-async function getPushPermissionStatus(): Promise<string> {
+async function getNativePushToken(): Promise<string | null> {
   try {
-    const { status } = await Notifications.getPermissionsAsync();
-    if (status === "granted") return "GRANTED";
-    if (status === "denied") return "DENIED";
+    const token = await Notifications.getDevicePushTokenAsync();
+    const raw = token?.data;
+    return typeof raw === "string" ? raw : raw ? JSON.stringify(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function mapPermissionStatus(
+  settings: Notifications.NotificationPermissionsStatus,
+): PushPermissionStatus {
+  const { status } = settings;
+  const iosStatus = (settings as unknown as { ios?: { status?: number } })?.ios?.status;
+
+  if (iosStatus === Notifications.IosAuthorizationStatus.PROVISIONAL) {
+    return "PROVISIONAL";
+  }
+  if (status === "granted") return "GRANTED";
+  if (status === "denied") return "DENIED";
+  return "UNKNOWN";
+}
+
+export async function getCurrentPushPermissionStatus(): Promise<PushPermissionStatus> {
+  try {
+    const settings = await Notifications.getPermissionsAsync();
+    return mapPermissionStatus(settings);
+  } catch {
     return "UNKNOWN";
+  }
+}
+
+export async function requestPushPermissionStatus(): Promise<PushPermissionStatus> {
+  try {
+    const settings = await Notifications.requestPermissionsAsync();
+    return mapPermissionStatus(settings);
   } catch {
     return "UNKNOWN";
   }
 }
 
 export async function collectDeviceInfo(): Promise<DeviceInput> {
-  const [deviceId, expoPushToken, pushPermissionStatus] = await Promise.all([
+  const [deviceId, expoPushToken, nativePushToken, pushPermissionStatus] = await Promise.all([
     getDeviceId(),
     getExpoPushToken(),
-    getPushPermissionStatus(),
+    getNativePushToken(),
+    getCurrentPushPermissionStatus(),
   ]);
 
   const locales = Localization.getLocales();
@@ -65,7 +98,7 @@ export async function collectDeviceInfo(): Promise<DeviceInput> {
     expoPushToken,
     locale,
     metadata: null,
-    nativePushToken: null,
+    nativePushToken,
     osVersion: Device.osVersion ?? null,
     platform: Platform.OS.toUpperCase(),
     pushPermissionStatus,
@@ -75,5 +108,8 @@ export async function collectDeviceInfo(): Promise<DeviceInput> {
 
 export function useDeviceInfo() {
   const collect = useCallback(collectDeviceInfo, []);
-  return { collect };
+  const getPermissionStatus = useCallback(getCurrentPushPermissionStatus, []);
+  const requestPermission = useCallback(requestPushPermissionStatus, []);
+
+  return { collect, getPermissionStatus, requestPermission };
 }

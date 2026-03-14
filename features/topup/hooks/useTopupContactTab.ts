@@ -5,15 +5,19 @@ import {
   useServiceSelectionStore,
 } from "@/store/useServiceSelectionStore";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useContacts } from "../components/contacts/useContacts";
 
 export function useTopupContactTab() {
   const [query, setQuery] = useState("");
   const { contacts, loading, permission, loadContacts } = useContacts();
   const { country, dialCode } = usePhoneCountry();
-  const { hydrateFromContact, startSelection, setCountryIso2 } =
-    useServiceSelectionStore();
+  const { hydrateFromContact, startSelection } = useServiceSelectionStore();
+  const initialCountryIsoRef = useRef(country.iso);
+
+  const countryFilterIso = useMemo(() => {
+    return country.iso !== initialCountryIsoRef.current ? country.iso : null;
+  }, [country.iso]);
 
   useEffect(() => {
     startSelection({
@@ -28,7 +32,6 @@ export function useTopupContactTab() {
 
   const handleSelectContact = (phone: string) => {
     hydrateFromContact(phone, dialCode);
-    setCountryIso2(country.iso);
     router.push({
       pathname: "/services/topup/topup-flow",
       params: { serviceItemKey: "TOPUP_MOBILE" },
@@ -45,6 +48,7 @@ export function useTopupContactTab() {
     permission,
     loadContacts,
     country,
+    countryFilterIso,
     dialCode,
     handleSelectContact,
     handleCountryPress,

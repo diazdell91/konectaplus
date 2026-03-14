@@ -152,7 +152,6 @@ const ContactsList = ({
         sections={sections}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
-          console.log(JSON.stringify(item, null, 2));
           return (
             <RowItem
               displayName={item.displayName}

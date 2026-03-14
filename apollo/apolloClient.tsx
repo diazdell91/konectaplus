@@ -79,7 +79,7 @@ function resolvePending(token: string | null) {
   pendingResolvers = [];
 }
 
-async function refreshAccessToken(client: ApolloClient<unknown>) {
+async function refreshAccessToken(client: ApolloClient) {
   const refreshToken = useAuthStore.getState().getRefreshToken();
   if (!refreshToken) return null;
 
@@ -125,22 +125,33 @@ const authLink = new SetContextLink(({ headers }) => {
 });
 
 function isTokenExpiredError(error: unknown) {
+  const hasAuthMessage = (message?: string) =>
+    !!message && /unauthorized|token expired|jwt expired|unauthenticated/i.test(message);
+
   if (CombinedGraphQLErrors.is(error)) {
     return error.errors.some((e) => {
       const code = (e as any)?.extensions?.code;
-      return code === "TOKEN_EXPIRED" || code === "UNAUTHENTICATED";
+      return (
+        code === "TOKEN_EXPIRED" ||
+        code === "UNAUTHENTICATED" ||
+        hasAuthMessage((e as any)?.message)
+      );
     });
   }
   if (CombinedProtocolErrors.is(error)) {
     return error.errors.some((e) => {
       const code = (e as any)?.extensions?.code;
-      return code === "TOKEN_EXPIRED" || code === "UNAUTHENTICATED";
+      return (
+        code === "TOKEN_EXPIRED" ||
+        code === "UNAUTHENTICATED" ||
+        hasAuthMessage((e as any)?.message)
+      );
     });
   }
   return false;
 }
 
-const apolloClientRef: { current: ApolloClient<unknown> | null } = {
+const apolloClientRef: { current: ApolloClient | null } = {
   current: null,
 };
 

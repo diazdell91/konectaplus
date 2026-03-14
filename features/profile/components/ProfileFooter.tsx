@@ -1,7 +1,7 @@
-import { View, StyleSheet } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui";
 import { COLORS, SPACING } from "@/theme";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { StyleSheet, View } from "react-native";
 
 export function ProfileFooter() {
   return (
@@ -16,7 +16,7 @@ export function ProfileFooter() {
         para los cubanos.
       </Text>
       <Text style={styles.copyrightText}>
-        © 2025 Pa Cubita Envíos. Todos los derechos reservados.
+        © 2026 Konecta+. Todos los derechos reservados.
       </Text>
     </View>
   );

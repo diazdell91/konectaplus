@@ -7,5 +7,7 @@ type Props = {
 };
 
 export const ApolloProvider = ({ children }: Props) => {
-  return <Provider client={createApolloClient()}>{children}</Provider>;
+  const client = React.useMemo(() => createApolloClient(), []);
+
+  return <Provider client={client}>{children}</Provider>;
 };
