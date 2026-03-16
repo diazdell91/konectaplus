@@ -1,5 +1,5 @@
 import { COUNTRIES } from "@/constants/phoneCountries";
-import { usePhoneCountry } from "@/context/PhoneCountry";
+import { usePhoneCountryStore } from "@/store/usePhoneCountryStore";
 import {
   buildLetterIndex,
   filterCountries,
@@ -23,7 +23,7 @@ const POPULAR_ISOS = new Set(["CU", "US", "MX", "DO", "ES"]);
 
 export default function CountryPickerScreen() {
   const router = useRouter();
-  const { setCountry } = usePhoneCountry();
+  const setCountry = usePhoneCountryStore((s) => s.setCountry);
   const [q, setQ] = useState("");
 
   const list = useMemo(() => COUNTRIES.filter((c) => !!c.prefix), []);

@@ -1,8 +1,8 @@
 import DeliveryPackageIcon from "@/components/svg/DeliveryPackageIcon";
 import PackagesLocationIcon from "@/components/svg/PackagesLocationIcon";
 import PhonePackageIcon from "@/components/svg/PhonePackageIcon";
-import { AppSettingsContext } from "@/context/AppSettings";
-import { useCallback, use, useEffect, useState } from "react";
+import { useAppSettingsStore } from "@/store/useAppSettingsStore";
+import { useCallback, useEffect, useState } from "react";
 import {
   Easing,
   useSharedValue,
@@ -34,7 +34,7 @@ export const ONBOARDING_STEPS = [
 
 export function useOnboarding() {
   const [screenIndex, setScreenIndex] = useState(0);
-  const { updateSettings } = use(AppSettingsContext);
+  const updateSettings = useAppSettingsStore((s) => s.updateSettings);
 
   const scale = useSharedValue(0.3);
   const breathingScale = useSharedValue(1);

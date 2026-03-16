@@ -1,6 +1,12 @@
+import { useQuery } from "@apollo/client/react";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  PROMOTION_LISTINGS,
+  PromotionListingsData,
+  PromotionListingsVariables,
+} from "@/graphql/promotionListings";
 import FeaturedPromotionsSection from "../components/FeaturedPromotionsSection";
 import HomeHeader from "../components/HomeHeader";
 import HomeHeroCarousel from "../components/HomeHeroCarousel";
@@ -10,6 +16,18 @@ import ServicesGrid from "../components/ServicesGrid";
 import SpecialOffersSection from "../components/SpecialOffersSection";
 
 const HomeScreen = () => {
+  const { data } = useQuery<PromotionListingsData, PromotionListingsVariables>(
+    PROMOTION_LISTINGS,
+    {
+      variables: {
+        page: 1,
+        pageSize: 10,
+      },
+    }
+  );
+
+  const promotions = data?.promotionListings.items ?? [];
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -36,8 +54,14 @@ const HomeScreen = () => {
         <ServicesGrid />
 
         <FeaturedPromotionsSection
-          onPressPromotion={(id) => {
-            console.log("Promotion selected:", id);
+          items={promotions}
+          onPressPromotion={(promotion) => {
+            console.log(
+              "Promotion selected:",
+              promotion.id,
+              promotion.actionType,
+              promotion.actionValue,
+            );
           }}
         />
         <PopularCountriesSection

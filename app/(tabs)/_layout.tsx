@@ -19,9 +19,9 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Inicio</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="(topup)">
-        <NativeTabs.Trigger.Icon sf="arrow.up.circle.fill" md="arrow_upward" />
-        <NativeTabs.Trigger.Label>Recargas</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="(orders)/index">
+        <NativeTabs.Trigger.Icon sf="backpack.fill" md="backpack" />
+        <NativeTabs.Trigger.Label>Historial</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="(profile)/index">
         <NativeTabs.Trigger.Icon sf="person.fill" md="account_circle" />

@@ -1,4 +1,4 @@
-import { useAuth } from "@/context/AuthProvider";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useDeviceInfo } from "@/features/auth/hooks/useDeviceInfo";
 import { useEffect, useState } from "react";
 import {

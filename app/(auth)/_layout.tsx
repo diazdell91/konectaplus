@@ -1,20 +1,19 @@
-import { AppSettingsContext } from "@/context/AppSettings";
+import { useAppSettingsStore } from "@/store/useAppSettingsStore";
 import { Stack } from "expo-router";
-import { use } from "react";
 
 export default function AuthLayout() {
-  const { settings } = use(AppSettingsContext);
+  const isOnboarded = useAppSettingsStore((s) => s.isOnboarded);
 
   return (
     <Stack>
-      <Stack.Protected guard={!settings?.isOnboarded}>
+      <Stack.Protected guard={!isOnboarded}>
         <Stack.Screen
           name="onboarding"
           options={{ headerShown: false, gestureEnabled: false }}
         />
       </Stack.Protected>
 
-      <Stack.Protected guard={settings?.isOnboarded}>
+      <Stack.Protected guard={isOnboarded}>
         <Stack.Screen
           name="index"
           options={{ headerShown: false, gestureEnabled: false }}

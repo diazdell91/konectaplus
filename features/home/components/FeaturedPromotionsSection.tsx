@@ -8,74 +8,42 @@ import {
   View,
 } from "react-native";
 import { Text } from "@/components/ui";
+import { getFlagSource } from "@/constants/phoneCountries";
+import { PromotionListing } from "@/graphql/promotionListings";
 import COLORS from "@/theme/colors";
 import { FONT_FAMILIES } from "@/theme/typography";
 
-interface Promotion {
-  id: string;
-  operator: string;
-  country: string;
-  title: string;
-  description: string;
-  image: string;
-  flag: string;
-}
-
-const promotions: Promotion[] = [
-  {
-    id: "1",
-    operator: "Telcel",
-    country: "México",
-    title: "Paquete Amigo",
-    description:
-      "Obtén 1.5 GB, Llamadas, SMS y Redes sociales por 15 días, sin límites.",
-    image: "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=400&h=300&fit=crop",
-    flag: "🇲🇽",
-  },
-  {
-    id: "2",
-    operator: "Claro",
-    country: "República Dominicana",
-    title: "Recarga 300 DOP",
-    description: "Saldo para lo que quieras.",
-    image: "https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?w=400&h=300&fit=crop",
-    flag: "🇩🇴",
-  },
-  {
-    id: "3",
-    operator: "AT&T",
-    country: "México",
-    title: "Recarga 200 MXN",
-    description:
-      "Obtén Llamadas y SMS ilimitados a México y Estados Unidos, 3.5 GB de datos.",
-    image: "https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=400&h=300&fit=crop",
-    flag: "🇲🇽",
-  },
-];
-
 interface FeaturedPromotionsSectionProps {
-  onPressPromotion?: (promotionId: string) => void;
+  items?: PromotionListing[];
+  onPressPromotion?: (promotion: PromotionListing) => void;
 }
 
 const FeaturedPromotionsSection = ({
+  items,
   onPressPromotion,
 }: FeaturedPromotionsSectionProps) => {
-  const handlePress = (id: string) => {
+  const handlePress = (promotion: PromotionListing) => {
     if (onPressPromotion) {
-      onPressPromotion(id);
+      onPressPromotion(promotion);
     } else {
-      console.log(id);
+      console.log(promotion.id);
     }
   };
 
-  const renderItem = ({ item }: { item: Promotion }) => (
+  const promotions = items ?? [];
+
+  if (promotions.length === 0) {
+    return null;
+  }
+
+  const renderItem = ({ item }: { item: PromotionListing }) => (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-      onPress={() => handlePress(item.id)}
+      onPress={() => handlePress(item)}
     >
       {/* Left image */}
       <Image
-        source={{ uri: item.image }}
+        source={{ uri: item.imageUrl ?? "" }}
         style={styles.cardImage}
         contentFit="cover"
       />
@@ -84,9 +52,19 @@ const FeaturedPromotionsSection = ({
       <View style={styles.cardBody}>
         {/* Operator · Country */}
         <View style={styles.operatorRow}>
-          <Text style={styles.operatorText}>{item.operator}</Text>
+          <Text style={styles.operatorText}>
+            {item.name ?? item.providerCode ?? "Operador"}
+          </Text>
           <Text style={styles.operatorDot}> • </Text>
-          <Text style={styles.countryText} numberOfLines={1}>{item.country}</Text>
+          {item.countryIso && getFlagSource(item.countryIso) ? (
+            <Image
+              source={getFlagSource(item.countryIso)}
+              style={styles.countryFlag}
+              contentFit="cover"
+            />
+          ) : (
+            <Text style={styles.countryText} numberOfLines={1}>--</Text>
+          )}
         </View>
 
         {/* Title */}
@@ -96,13 +74,15 @@ const FeaturedPromotionsSection = ({
 
         {/* Description */}
         <Text style={styles.promoDescription} numberOfLines={2}>
-          {item.description}
+          {item.subtitle ?? "Promoción disponible por tiempo limitado."}
         </Text>
       </View>
 
       {/* Right side */}
       <View style={styles.cardRight}>
-        <Text style={styles.flagEmoji}>{item.flag}</Text>
+        {item.badge ? (
+          <Text style={styles.badgeText} numberOfLines={1}>{item.badge}</Text>
+        ) : null}
         <Ionicons name="chevron-forward" size={18} color="#C0C8D2" />
       </View>
     </Pressable>
@@ -186,6 +166,11 @@ const styles = StyleSheet.create({
     color: COLORS.text.secondary,
     flexShrink: 1,
   },
+  countryFlag: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+  },
   promoTitle: {
     fontFamily: FONT_FAMILIES.bold,
     fontSize: 18,
@@ -206,7 +191,10 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     paddingVertical: 14,
   },
-  flagEmoji: {
-    fontSize: 22,
+  badgeText: {
+    fontFamily: FONT_FAMILIES.semiBold,
+    fontSize: 12,
+    color: COLORS.primary.main,
+    textAlign: "center",
   },
 });

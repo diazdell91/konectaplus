@@ -1,9 +1,9 @@
-import { usePhoneCountry } from "@/context/PhoneCountry";
 import {
   ServiceInputKind,
   ServiceType,
   useServiceSelectionStore,
 } from "@/store/useServiceSelectionStore";
+import { usePhoneCountryStore } from "@/store/usePhoneCountryStore";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useContacts } from "../components/contacts/useContacts";
@@ -11,7 +11,8 @@ import { useContacts } from "../components/contacts/useContacts";
 export function useTopupContactTab() {
   const [query, setQuery] = useState("");
   const { contacts, loading, permission, loadContacts } = useContacts();
-  const { country, dialCode } = usePhoneCountry();
+  const country = usePhoneCountryStore((s) => s.country);
+  const dialCode = usePhoneCountryStore((s) => s.dialCode);
   const { hydrateFromContact, startSelection } = useServiceSelectionStore();
   const initialCountryIsoRef = useRef(country.iso);
 

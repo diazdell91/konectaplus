@@ -1,9 +1,6 @@
 import { ApolloProvider } from "@/apollo/apolloProvider";
 import { FONTS } from "@/constants/Fonts";
-import { AppSettingsProvider } from "@/context/AppSettings";
-import { AuthProvider } from "@/context/AuthProvider";
-import { PhoneCountryProvider } from "@/context/PhoneCountry";
-import { TopupCartProvider } from "@/context/TopupCartContext";
+import { useAuthPushSyncEffect } from "@/features/auth/hooks/useAuth";
 import { selectIsAuthenticated, selectIsHydrated, useAuthStore } from "@/store/useAuthStore";
 import { BORDER_RADIUS, COLORS, FONT_FAMILIES, FONT_SIZES, SPACING } from "@/theme";
 import { StripeProvider } from "@stripe/stripe-react-native";
@@ -45,6 +42,7 @@ function AppContent() {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
   const isHydrated      = useAuthStore(selectIsHydrated);
   const isReady = isHydrated && fontsLoaded;
+  useAuthPushSyncEffect();
 
   React.useEffect(() => {
     if (!isReady) return;
@@ -112,23 +110,15 @@ export default function RootLayout() {
         merchantIdentifier="merchant.com.konectaplus.app"
       >
         <ApolloProvider>
-          <AuthProvider>
-            <PhoneCountryProvider>
-              <TopupCartProvider>
-                <AppSettingsProvider>
-                  <KeyboardProvider>
-                    <PressablesConfig
-                      globalHandlers={{ onPress: () => Haptics.selectionAsync() }}
-                      config={{ minScale: 0.97 }}
-                    >
-                      <AppContent />
-                      <AppToaster />
-                    </PressablesConfig>
-                  </KeyboardProvider>
-                </AppSettingsProvider>
-              </TopupCartProvider>
-            </PhoneCountryProvider>
-          </AuthProvider>
+          <KeyboardProvider>
+            <PressablesConfig
+              globalHandlers={{ onPress: () => Haptics.selectionAsync() }}
+              config={{ minScale: 0.97 }}
+            >
+              <AppContent />
+              <AppToaster />
+            </PressablesConfig>
+          </KeyboardProvider>
         </ApolloProvider>
       </StripeProvider>
     </GestureHandlerRootView>

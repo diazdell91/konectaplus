@@ -1,5 +1,5 @@
-import { useAuth } from "@/context/AuthProvider";
-import { usePhoneCountry } from "@/context/PhoneCountry";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { usePhoneCountryStore } from "@/store/usePhoneCountryStore";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { TextInput } from "react-native";
@@ -7,7 +7,9 @@ import { useSharedValue, withTiming } from "react-native-reanimated";
 
 export function usePhoneEntry() {
   const { requestOtp } = useAuth();
-  const { country: selectedCountry, dialCode, validatePhoneLength } = usePhoneCountry();
+  const selectedCountry = usePhoneCountryStore((s) => s.country);
+  const dialCode = usePhoneCountryStore((s) => s.dialCode);
+  const validatePhoneLength = usePhoneCountryStore((s) => s.validatePhoneLength);
 
   const [phoneDigits, setPhoneDigits] = useState("");
   const [loading, setLoading] = useState(false);

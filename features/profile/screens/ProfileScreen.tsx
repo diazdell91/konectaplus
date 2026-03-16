@@ -4,11 +4,11 @@ import ProfileListItem from "@/features/profile/components/ProfileListItem";
 import { ProfileSection } from "@/features/profile/components/ProfileSection";
 import { SocialLinks } from "@/features/profile/components/SocialLinks";
 import { ScreenHeader } from "@/components/ui";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { COLORS } from "@/theme";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ME, MeData } from "@/graphql/me";
-import { AuthContext } from "@/context/AuthProvider";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { SPACING } from "@/theme";
 import { useQuery } from "@apollo/client/react";
 import { router } from "expo-router";
@@ -16,7 +16,7 @@ import { ScrollView, StyleSheet } from "react-native";
 import { toast } from "sonner-native";
 
 export default function ProfileScreen() {
-  const { logout, logoutAllDevices } = useContext(AuthContext);
+  const { logout, logoutAllDevices } = useAuth();
   const [isLoggingOutAll, setIsLoggingOutAll] = useState(false);
   const insets = useSafeAreaInsets();
 
